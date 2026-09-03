@@ -1,0 +1,91 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg-nature: #F4F8F1;
+    --bg-nature-soft: #EEF5EA;
+    --bg-nature-alt: #E4EFDD;
+    --primary-agri: #1B4332;
+    --primary-hover: #2D6A4F;
+    --leaf-green: #40916C;
+    --soft-green: #95D5B2;
+    --pale-green: #D8F3DC;
+    --earth-brown: #6B4226;
+    --warm-cream: #F5EEDC;
+    --produce-orange: #F4A259;
+    --tomato-red: #E63946;
+    --harvest-yellow: #F6BD60;
+    --ai-blue: #5B5FEF;
+    --ai-purple: #7B61FF;
+    --neutral-text: #22333B;
+  }
+
+  body {
+    background-color: #F4F8F1;
+    color: #22333B;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  /* Nature-themed Organic Scrollbars */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #EEF5EA;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #95D5B2;
+    border-radius: 6px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #40916C;
+  }
+}
+
+/* Subtle Organic Field Texture at 5-10% Opacity */
+.bg-nature-pattern {
+  background-color: #F4F8F1;
+  background-image: radial-gradient(rgba(64, 145, 108, 0.08) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.hero-nature-gradient {
+  background: linear-gradient(135deg, #1B4332 0%, #2D6A4F 65%, #40916C 100%);
+}
+
+.ai-zone-gradient {
+  background: linear-gradient(135deg, #1B4332 0%, #2D6A4F 50%, #5B5FEF 100%);
+}
+
+.card-nature {
+  background: #FBFCF8;
+  border: 1px solid rgba(149, 213, 178, 0.4);
+  box-shadow: 0 10px 30px -4px rgba(45, 106, 79, 0.12), 0 4px 10px -2px rgba(45, 106, 79, 0.06);
+  border-radius: 22px;
+}
+
+.card-nature:hover {
+  border-color: rgba(64, 145, 108, 0.6);
+  transform: translateY(-3px);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.chip-nature {
+  background-color: #D8F3DC;
+  color: #1B4332;
+  font-weight: 700;
+  border-radius: 9999px;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+}
+
+.label-earth {
+  color: #6B4226;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
