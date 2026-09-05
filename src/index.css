@@ -4,88 +4,152 @@
 
 @layer base {
   :root {
-    --bg-nature: #F4F8F1;
-    --bg-nature-soft: #EEF5EA;
-    --bg-nature-alt: #E4EFDD;
-    --primary-agri: #1B4332;
-    --primary-hover: #2D6A4F;
-    --leaf-green: #40916C;
-    --soft-green: #95D5B2;
-    --pale-green: #D8F3DC;
-    --earth-brown: #6B4226;
-    --warm-cream: #F5EEDC;
-    --produce-orange: #F4A259;
-    --tomato-red: #E63946;
-    --harvest-yellow: #F6BD60;
-    --ai-blue: #5B5FEF;
-    --ai-purple: #7B61FF;
-    --neutral-text: #22333B;
+    --bg-base: #081F16;
+    --bg-forest: #0B2B1E;
+    --glass: rgba(255, 255, 255, 0.10);
+    --glass-border: rgba(255, 255, 255, 0.20);
+    --gold: #F6BD60;
+    --emerald: #2E8B57;
+    --text-primary: #EAF6EE;
+    --text-muted: #8FB3A0;
+  }
+
+  html, body, #root {
+    height: 100%;
   }
 
   body {
-    background-color: #F4F8F1;
-    color: #22333B;
+    background-color: #081F16;
+    color: #EAF6EE;
+    font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    overflow-x: hidden;
   }
 
-  /* Nature-themed Organic Scrollbars */
+  /* Dark glass scrollbar */
   ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
   }
   ::-webkit-scrollbar-track {
-    background: #EEF5EA;
+    background: #0B2B1E;
   }
   ::-webkit-scrollbar-thumb {
-    background: #95D5B2;
+    background: #2E8B57;
     border-radius: 6px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: #40916C;
+    background: #7CCFA2;
   }
 }
 
-/* Subtle Organic Field Texture at 5-10% Opacity */
-.bg-nature-pattern {
-  background-color: #F4F8F1;
-  background-image: radial-gradient(rgba(64, 145, 108, 0.08) 1px, transparent 1px);
-  background-size: 20px 20px;
+@layer components {
+  /* Glassmorphism primitives */
+  .glass-panel {
+    background: rgba(255, 255, 255, 0.10);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid rgba(255, 255, 255, 0.20);
+    border-radius: 24px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+  }
+
+  .glass-panel-sm {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 18px;
+  }
+
+  .glass-panel:hover {
+    border-color: rgba(246, 189, 96, 0.45);
+    box-shadow: 0 0 30px -6px rgba(246, 189, 96, 0.25);
+  }
+
+  .glass-button {
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .glass-button:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.02);
+  }
+
+  .glass-button-green {
+    background: rgba(46, 139, 87, 0.5);
+    backdrop-filter: blur(12px);
+  }
+  .glass-button-green:hover {
+    background: rgba(46, 139, 87, 0.7);
+  }
+
+  /* Gold gradient text for the "SMART SOIL" highlight */
+  .text-gold-gradient {
+    background: linear-gradient(120deg, #F6BD60, #FAD48A, #F6BD60);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .glass-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+  }
+
+  /* Animated scanning corner brackets container */
+  .scan-frame {
+    position: relative;
+    border: 1px solid rgba(124, 207, 162, 0.4);
+    border-radius: 16px;
+    overflow: hidden;
+    background:
+      linear-gradient(#F6BD60, #F6BD60) top left / 24px 3px,
+      linear-gradient(#F6BD60, #F6BD60) top left / 3px 24px,
+      linear-gradient(#F6BD60, #F6BD60) top right / 24px 3px,
+      linear-gradient(#F6BD60, #F6BD60) top right / 3px 24px,
+      linear-gradient(#F6BD60, #F6BD60) bottom left / 24px 3px,
+      linear-gradient(#F6BD60, #F6BD60) bottom left / 3px 24px,
+      linear-gradient(#F6BD60, #F6BD60) bottom right / 24px 3px,
+      linear-gradient(#F6BD60, #F6BD60) bottom right / 3px 24px;
+    background-repeat: no-repeat;
+    background-position:
+      top left, top left,
+      top right, top right,
+      bottom left, bottom left,
+      bottom right, bottom right;
+  }
 }
 
-.hero-nature-gradient {
-  background: linear-gradient(135deg, #1B4332 0%, #2D6A4F 65%, #40916C 100%);
-}
+@layer utilities {
+  .bg-agri-forest {
+    background:
+      radial-gradient(1200px 600px at 15% -10%, rgba(46, 139, 87, 0.35), transparent 60%),
+      radial-gradient(900px 500px at 85% 10%, rgba(246, 189, 96, 0.15), transparent 55%),
+      linear-gradient(160deg, #0B2B1E 0%, #081F16 60%, #061610 100%);
+  }
 
-.ai-zone-gradient {
-  background: linear-gradient(135deg, #1B4332 0%, #2D6A4F 50%, #5B5FEF 100%);
-}
+  .vignette {
+    box-shadow: inset 0 0 200px rgba(0, 0, 0, 0.65);
+  }
 
-.card-nature {
-  background: #FBFCF8;
-  border: 1px solid rgba(149, 213, 178, 0.4);
-  box-shadow: 0 10px 30px -4px rgba(45, 106, 79, 0.12), 0 4px 10px -2px rgba(45, 106, 79, 0.06);
-  border-radius: 22px;
-}
+  .glow {
+    box-shadow: 0 0 12px 2px rgba(246, 189, 96, 0.6);
+  }
 
-.card-nature:hover {
-  border-color: rgba(64, 145, 108, 0.6);
-  transform: translateY(-3px);
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
+  /* Animated route lines on the aggregation map */
+  @keyframes routeFlow {
+    0% { stroke-dashoffset: 1000; }
+    100% { stroke-dashoffset: 0; }
+  }
+  .route-animated {
+    stroke-dasharray: 10 8;
+    animation: routeFlow 1.6s linear infinite;
+  }
 
-.chip-nature {
-  background-color: #D8F3DC;
-  color: #1B4332;
-  font-weight: 700;
-  border-radius: 9999px;
-  padding: 0.25rem 0.75rem;
-  font-size: 0.75rem;
-}
-
-.label-earth {
-  color: #6B4226;
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
 }
