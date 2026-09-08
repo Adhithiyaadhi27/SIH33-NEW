@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GlassCard } from '../ui/primitives';
-import { useRealtime } from '../../services/realtime';
+import { useRealtime, useRealtimeStatus } from '../../services/realtime';
+import useTranslation from '../../services/useTranslation';
 import { mockOrders } from '../../data/mockOrders';
 import { Truck, ShieldCheck, TrendingUp, Package } from 'lucide-react';
 
@@ -15,6 +16,8 @@ interface Activity {
 let idCounter = 100;
 
 export default function LiveActivityFeed() {
+  const { t } = useTranslation();
+  const feedStatus = useRealtimeStatus();
   const [items, setItems] = useState<Activity[]>([]);
 
   const prepend = (a: Omit<Activity, 'id' | 'time'>) => {
@@ -73,8 +76,10 @@ export default function LiveActivityFeed() {
           <p className="text-xs text-text-muted mt-0.5">Realtime market, logistics &amp; inventory events</p>
         </div>
         <div className="flex items-center gap-1.5 text-[10px] font-bold text-emerald-400">
-          <span className="flex h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-          LIVE
+          <span className={`flex h-1.5 w-1.5 rounded-full animate-pulse ${feedStatus === 'live' ? 'bg-emerald-400' : 'bg-soil-gold'}`} />
+          <span className={feedStatus === 'live' ? 'text-emerald-400' : 'text-soil-gold'}>
+            {feedStatus === 'live' ? t('marketplace.live_feed') : feedStatus === 'simulated' ? t('marketplace.simulated_feed') : t('marketplace.connecting')}
+          </span>
         </div>
       </div>
 

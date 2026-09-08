@@ -30,29 +30,47 @@ AgriDirect AI is a production-ready, synchronized agricultural technology platfo
 ---
 
 ## 💻 Technology Stack
-- **Frontend**: React 19 + Vite + Tailwind CSS + React Router v7 + Axios + Lucide Icons + Canvas QR Code + Canvas Confetti
-- **Backend**: Python Flask RESTful API (`backend/app.py`)
+- **Frontend**: React 19 + Vite + Tailwind CSS + React Router v7 + Axios + TanStack Query + Zustand + Socket.IO Client + Framer Motion + React Leaflet + Recharts + Lucide Icons + Canvas QR Code
+- **Backend**: Python Flask RESTful API + Flask-SocketIO realtime feed (`backend/app.py`, `backend/socketio_handler.py`)
 - **AI/ML Engine**: Computer Vision quality classification, 14-30 day shortage forecasting model, perishability decay calculator, multi-supplier smart aggregation algorithm (`backend/ai_engine.py`)
-- **Security**: Strict zero-exposure secret policy (`.env.example` committed, `.env` gitignored, JWT & RBAC server-side authorization).
 
 ---
 
 ## 🚀 Getting Started
 
-### 1. Frontend Setup
-```bash
-npm install
-npm run dev
-```
-Open `http://localhost:5173` in your browser.
-
-### 2. Backend Setup
+### 1. Backend Setup (start first)
 ```bash
 cd backend
 pip install -r requirements.txt
 python app.py
 ```
-The REST API runs on `http://localhost:5000/api`.
+The REST API runs on `http://localhost:5000/api` and the Socket.IO realtime feed on `http://localhost:5000/socket.io`. The background price emitter updates product prices every ~4 seconds globally.
+
+### 2. Frontend Setup
+```bash
+npm install
+npm run dev
+```
+Open `http://localhost:5173` in your browser. The Vite dev server proxies `/api` and `/socket.io` to the Flask backend, so no CORS configuration is needed locally. If the backend is unreachable, the UI automatically falls back to a built-in mock realtime provider.
+
+### 3. Environment Variables (`.env`)
+```bash
+VITE_API_URL=""          # leave empty to use the /api Vite proxy
+VITE_SOCKET_URL=""       # leave empty to use the /socket.io Vite proxy
+```
+
+---
+
+## 🌐 Multilingual Support
+The navbar **language toggle** (globe icon) switches the entire UI between:
+- English (`en`) · Tamil (`ta`) · Hindi (`hi`) · Telugu (`te`) · Kannada (`kn`)
+
+Translations are stored server-side (`backend/translations.py`) and fetched via `GET /api/translations/:lang`. The chosen language persists in `localStorage`.
+
+## ⚡ Realtime Architecture
+- **REST** (`/api/*`) — CRUD for products, orders, registration, passport, analytics, supply-demand.
+- **Socket.IO** events emitted by the backend: `price:update`, `stock:update`, `metric:update`, `route:update`, `heatmap:update`, `grade:update`.
+- The frontend service layer (`src/services/realtime.ts`) subscribes to these events; the marketplace, activity feed, and heatmap update live without any page refresh.
 
 ---
 

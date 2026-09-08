@@ -1,5 +1,7 @@
 import { io, type Socket } from 'socket.io-client';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+
+export type RealtimeStatus = 'connecting' | 'live' | 'simulated';
 
 type Handler<T = unknown> = (payload: T) => void;
 
@@ -13,34 +15,56 @@ export interface RealtimeEventMap {
 }
 
 /**
- * Realtime service — connects to a Socket.IO backend if available,
- * otherwise falls back to a built-in mock realtime provider that emits
- * interval-driven updates. Swap the backend URL below to connect a live
- * server without touching the UI.
+ * Realtime service — connects to the Socket.IO backend via the Vite dev
+ * proxy (`/socket.io`), or an explicit VITE_SOCKET_URL.
+ *
+ * Behaviour:
+ *  - When the backend is reachable, live Socket.IO events drive the UI
+ *    (realtime product prices + stock).
+ *  - When the backend is down, a built-in mock provider keeps the UI alive
+ *    with simulated updates. No UI changes needed either way.
  */
 
-const BACKEND_SOCKET_URL: string | null = null; // e.g. 'http://localhost:5000'
-const ENABLE_MOCK = true;
+const BACKEND_SOCKET_URL: string | null = import.meta.env.VITE_SOCKET_URL || window.location.origin || null;
 
 let socket: Socket | null = null;
+let socketConnected = false;
+let mockInterval: ReturnType<typeof setInterval> | null = null;
 const mockListeners = new Map<string, Set<Handler>>();
 
-function connectSocket(): Socket | null {
-  if (!BACKEND_SOCKET_URL) return null;
-  if (socket) return socket;
-  socket = io(BACKEND_SOCKET_URL, { transports: ['websocket'] });
-  return socket;
+let connectionStatus: RealtimeStatus = 'connecting';
+const statusListeners = new Set<() => void>();
+
+function setConnectionStatus(status: RealtimeStatus) {
+  if (connectionStatus === status) return;
+  connectionStatus = status;
+  statusListeners.forEach((cb) => cb());
+}
+
+export function getRealtimeStatus(): RealtimeStatus {
+  return connectionStatus;
+}
+
+function stopMockProvider() {
+  if (mockInterval) {
+    clearInterval(mockInterval);
+    mockInterval = null;
+  }
 }
 
 function startMockProvider() {
-  if (mockListeners.size > 0) return; // already running
+  if (socketConnected) return; // live feed is active
+  if (mockInterval) return; // already running
+
+  setConnectionStatus('simulated');
+
   const queue: Array<[string, unknown]> = [];
 
   const productIds = ['prod_tomato', 'prod_beans', 'prod_potato', 'prod_apple', 'prod_onion', 'prod_brinjal', 'prod_carrot', 'prod_mango'];
   const basePrices = [30, 23.5, 28, 145, 32, 26, 35, 120];
   let priceState = [...basePrices];
 
-  const interval = setInterval(() => {
+  mockInterval = setInterval(() => {
     const idx = Math.floor(Math.random() * priceState.length);
     const delta = Math.round((Math.random() * 4 - 2) * 10) / 10;
     priceState = priceState.map((p, i) => (i === idx ? Math.max(5, Number((p + delta).toFixed(1))) : p));
@@ -57,27 +81,64 @@ function startMockProvider() {
       handlers?.forEach((h) => h(payload));
     }
   }, 4000);
+}
 
-  // Cleanup not wired globally; kept simple for demo.
-  (interval as unknown as { __mock: boolean }).__mock = true;
+function connectSocket(): Socket | null {
+  if (!BACKEND_SOCKET_URL) {
+    startMockProvider();
+    return null;
+  }
+  if (socket) return socket;
+
+  socket = io(BACKEND_SOCKET_URL, {
+    transports: ['websocket', 'polling'],
+    reconnection: true,
+    reconnectionAttempts: Infinity,
+    reconnectionDelay: 3000,
+    timeout: 5000,
+  });
+
+  socket.on('connect', () => {
+    socketConnected = true;
+    setConnectionStatus('live');
+    stopMockProvider();
+  });
+
+  socket.on('disconnect', (reason) => {
+    socketConnected = false;
+    if (reason === 'io server disconnect') {
+      setConnectionStatus('simulated');
+      return;
+    }
+    setConnectionStatus('simulated');
+    startMockProvider();
+  });
+
+  socket.on('connect_error', () => {
+    socketConnected = false;
+    setConnectionStatus('simulated');
+    startMockProvider();
+  });
+
+  return socket;
 }
 
 export const realtime = {
   on<T = unknown>(event: string, handler: Handler<T>): () => void {
-    const s = connectSocket();
-    if (s) {
-      s.on(event, handler);
-      return () => s.off(event, handler);
+    connectSocket();
+    if (socket) {
+      socket.on(event, handler);
     }
-    if (ENABLE_MOCK) {
-      if (!mockListeners.has(event)) mockListeners.set(event, new Set());
-      mockListeners.get(event)!.add(handler as Handler);
-      startMockProvider();
-      return () => {
-        mockListeners.get(event)?.delete(handler as Handler);
-      };
-    }
-    return () => {};
+    // Always register the mock listener too: if the socket never connects,
+    // events continue to flow from the mock provider.
+    if (!mockListeners.has(event)) mockListeners.set(event, new Set());
+    mockListeners.get(event)!.add(handler as Handler);
+    startMockProvider();
+
+    return () => {
+      socket?.off(event, handler);
+      mockListeners.get(event)?.delete(handler as Handler);
+    };
   },
   off(event: string, handler?: Handler) {
     if (socket) {
@@ -89,7 +150,12 @@ export const realtime = {
     if (socket) {
       socket.disconnect();
       socket = null;
+      socketConnected = false;
     }
+    stopMockProvider();
+  },
+  isConnected() {
+    return socketConnected;
   },
 };
 
@@ -106,4 +172,20 @@ export function useRealtime<K extends keyof RealtimeEventMap>(event: K, handler:
   useEffect(() => {
     return realtime.on(event, ((payload: RealtimeEventMap[K]) => handlerRef.current(payload)) as Handler);
   }, [event]);
+}
+
+// React hook that reflects the live-vs-simulated connection state of the feed.
+export function useRealtimeStatus(): RealtimeStatus {
+  const [status, setStatus] = useState<RealtimeStatus>(connectionStatus);
+
+  useEffect(() => {
+    const cb = () => setStatus(connectionStatus);
+    cb();
+    statusListeners.add(cb);
+    return () => {
+      statusListeners.delete(cb);
+    };
+  }, []);
+
+  return status;
 }

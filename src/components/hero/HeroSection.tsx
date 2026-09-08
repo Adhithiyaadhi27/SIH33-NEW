@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
+import useTranslation from '../../services/useTranslation';
 
 const HERO_BG = 'https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=1920&q=80';
 
@@ -9,6 +10,8 @@ const scrollToDashboard = () => {
 };
 
 export default function HeroSection() {
+  const { t } = useTranslation();
+
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden">
       {/* Full-viewport agricultural background */}
@@ -32,7 +35,7 @@ export default function HeroSection() {
             className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-soil-pale text-xs font-bold"
           >
             <span className="flex h-2 w-2 rounded-full bg-soil-gold animate-ping" />
-            Introducing a new era
+            {t('hero.introducing')}
           </motion.div>
 
           <motion.h1
@@ -41,9 +44,9 @@ export default function HeroSection() {
             transition={{ duration: 0.7, delay: 0.1 }}
             className="font-display font-extrabold text-4xl sm:text-6xl lg:text-7xl tracking-tight leading-[1.08] text-text-primary"
           >
-            THE <span className="text-gold-gradient">SMART SOIL</span>
-            <br />
-            MARKETPLACE
+            <span dangerouslySetInnerHTML={{
+              __html: t('hero.tagline').replace(/SMART SOIL/i, '<span class="text-gold-gradient">SMART SOIL</span>'),
+            }} />
           </motion.h1>
 
           <motion.p
@@ -52,7 +55,7 @@ export default function HeroSection() {
             transition={{ duration: 0.7, delay: 0.2 }}
             className="text-base sm:text-lg text-text-secondary max-w-xl leading-relaxed"
           >
-            Celebrating the Fragrance of the Soil
+            {t('hero.subtitle')}
           </motion.p>
 
           <motion.div
@@ -64,7 +67,7 @@ export default function HeroSection() {
               onClick={scrollToDashboard}
               className="group inline-flex items-center gap-2 bg-soil-gold hover:brightness-110 text-soil-base px-6 py-3 rounded-2xl font-bold text-sm shadow-glow-gold transition cursor-pointer"
             >
-              Learn More
+              {t('hero.learn_more')}
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition" />
             </button>
           </motion.div>

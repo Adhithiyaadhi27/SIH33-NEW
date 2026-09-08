@@ -64,7 +64,7 @@ USERS = [
 
 PRODUCTS = [
     {
-        "id": "prod_1",
+        "id": "prod_tomato",
         "name": "Heritage Country Tomato (நாட்டு தக்காளி)",
         "category": "Vegetables",
         "price": 25,
@@ -89,7 +89,7 @@ PRODUCTS = [
         "description": "Naturally ripened vine tomatoes grown in organic red soil of Madurai. High lycopene content, firm skin, ideal for cooking and fresh salads."
     },
     {
-        "id": "prod_2",
+        "id": "prod_potato",
         "name": "Ooty Table Potato (நீலகிரி உருளைக்கிழங்கு)",
         "category": "Vegetables",
         "price": 30,
@@ -114,7 +114,7 @@ PRODUCTS = [
         "description": "Crisp hill-station potatoes free from sprouting. Excellent dry matter for chips, fries, and traditional curries."
     },
     {
-        "id": "prod_3",
+        "id": "prod_onion",
         "name": "Nashik Red Onion (नाशिक लाल कांदा)",
         "category": "Vegetables",
         "price": 28,
@@ -139,7 +139,107 @@ PRODUCTS = [
         "description": "Medium-sized pungent red onions cured under sun drying. High sulfur pungent aroma, standard commercial grade."
     },
     {
-        "id": "prod_4",
+        "id": "prod_beans",
+        "name": "Nilgiris French Beans",
+        "category": "Vegetables",
+        "price": 23.5,
+        "unit": "kg",
+        "availableQty": 300,
+        "minBulkQty": 80,
+        "bulkPrice": 20,
+        "grade": "Grade A",
+        "supplier": "Nilgiris FPO",
+        "supplierId": "usr_fpo_2",
+        "location": "Ooty, Tamil Nadu",
+        "harvestDate": "2026-09-02",
+        "availability": "Ready Stock",
+        "supplierReliability": 91,
+        "rating": 4.6,
+        "reviewsCount": 54,
+        "batchId": "AGR-2026-1041",
+        "shelfLifeDays": 10,
+        "stockAgeDays": 1,
+        "wasteRisk": "Low",
+        "image": "https://images.unsplash.com/photo-1567375698348-5d9d5ae99de0?auto=format&fit=crop&w=600&q=80",
+        "description": "Tender, stringless French beans harvested at dawn from the Nilgiris foothills. Crisp texture, bright green, ideal for daily cooking."
+    },
+    {
+        "id": "prod_brinjal",
+        "name": "Madurai Oosimadai Brinjal",
+        "category": "Vegetables",
+        "price": 26,
+        "unit": "kg",
+        "availableQty": 700,
+        "minBulkQty": 60,
+        "bulkPrice": 22,
+        "grade": "Grade A",
+        "supplier": "GreenValley FPO",
+        "supplierId": "usr_fpo_1",
+        "location": "Madurai, Tamil Nadu",
+        "harvestDate": "2026-09-01",
+        "availability": "Ready Stock",
+        "supplierReliability": 90,
+        "rating": 4.5,
+        "reviewsCount": 48,
+        "batchId": "AGR-2026-1044",
+        "shelfLifeDays": 7,
+        "stockAgeDays": 1,
+        "wasteRisk": "Medium",
+        "image": "https://images.unsplash.com/photo-1603048588665-791ca8aea617?auto=format&fit=crop&w=600&q=80",
+        "description": "Long, glossy Madurai oosimadai brinjals with thin skin and few seeds. Perfect for sambar, kootu, and stuffed curries."
+    },
+    {
+        "id": "prod_carrot",
+        "name": "Ooty Carrot",
+        "category": "Vegetables",
+        "price": 35,
+        "unit": "kg",
+        "availableQty": 600,
+        "minBulkQty": 80,
+        "bulkPrice": 30,
+        "grade": "Grade A",
+        "supplier": "Ooty Co-op",
+        "supplierId": "usr_fpo_2",
+        "location": "Ooty, Tamil Nadu",
+        "harvestDate": "2026-09-01",
+        "availability": "Ready Stock",
+        "supplierReliability": 93,
+        "rating": 4.7,
+        "reviewsCount": 61,
+        "batchId": "AGR-2026-1047",
+        "shelfLifeDays": 14,
+        "stockAgeDays": 2,
+        "wasteRisk": "Low",
+        "image": "https://images.unsplash.com/photo-1447175008436-054170c2e979?auto=format&fit=crop&w=600&q=80",
+        "description": "Sweet, crunchy high-altitude carrots rich in beta-carotene. Washed and graded, great for salads, juices, and pickles."
+    },
+    {
+        "id": "prod_mango",
+        "name": "Alphonso Mango",
+        "category": "Fruits",
+        "price": 120,
+        "unit": "kg",
+        "availableQty": 450,
+        "minBulkQty": 100,
+        "bulkPrice": 108,
+        "grade": "Grade A",
+        "supplier": "Ratnagiri FPO",
+        "supplierId": "usr_fpo_5",
+        "location": "Ratnagiri, Maharashtra",
+        "harvestDate": "2026-08-30",
+        "availability": "Ready Stock",
+        "supplierReliability": 95,
+        "rating": 4.9,
+        "reviewsCount": 138,
+        "batchId": "AGR-2026-0998",
+        "shelfLifeDays": 12,
+        "stockAgeDays": 3,
+        "wasteRisk": "Low",
+        "image": "https://images.unsplash.com/photo-1553279768-865429fa0078?auto=format&fit=crop&w=600&q=80",
+        "description": "Premium Ratnagiri HAPs Alphonso mangoes with saffron-hued pulp and strong aroma. Harvested at 80% maturity for safe transit."
+    },
+    {
+        "id": "prod_rice",
         "name": "Karnal Aged 1121 Basmati Rice",
         "category": "Grains",
         "price": 85,
@@ -164,7 +264,7 @@ PRODUCTS = [
         "description": "Extra long grain aged basmati with rich aroma and non-sticky elongation post cooking."
     },
     {
-        "id": "prod_5",
+        "id": "prod_dal",
         "name": "Latur Desi Toor Dal (तुवर डाळ)",
         "category": "Pulses",
         "price": 130,
@@ -189,7 +289,7 @@ PRODUCTS = [
         "description": "Unpolished organic yellow split pigeon peas. Rich protein yield with authentic aroma."
     },
     {
-        "id": "prod_6",
+        "id": "prod_apple",
         "name": "Kinnaur Royal Delicious Apples",
         "category": "Fruits",
         "price": 145,
@@ -214,7 +314,7 @@ PRODUCTS = [
         "description": "High-altitude handpicked crisp red apples. Wax-free, naturally sweet and packed in eco-friendly crates."
     },
     {
-        "id": "prod_7",
+        "id": "prod_orange",
         "name": "Nagpur Mandarin Oranges (नागपूर संत्री)",
         "category": "Fruits",
         "price": 55,
@@ -239,7 +339,7 @@ PRODUCTS = [
         "description": "Juicy loose-jacket mandarins with perfect sweet-tart balance. Excellent for fresh table consumption or cold-pressed juices."
     },
     {
-        "id": "prod_8",
+        "id": "prod_turmeric",
         "name": "Erode Organic Alleppey Finger Turmeric",
         "category": "Spices",
         "price": 165,
@@ -615,7 +715,7 @@ ORDERS = [
         "mode": "Everyday Purchase",
         "items": [
             {
-                "productId": "prod_1",
+                "productId": "prod_tomato",
                 "name": "Heritage Country Tomato",
                 "quantity": 3,
                 "unit": "kg",
@@ -623,7 +723,7 @@ ORDERS = [
                 "batchId": "AGR-2026-1024"
             },
             {
-                "productId": "prod_2",
+                "productId": "prod_potato",
                 "name": "Ooty Table Potato",
                 "quantity": 2,
                 "unit": "kg",
@@ -661,7 +761,7 @@ ORDERS = [
         "mode": "Bulk Procurement",
         "items": [
             {
-                "productId": "prod_3",
+                "productId": "prod_onion",
                 "name": "Nashik Red Onion (Aggregated)",
                 "quantity": 5000,
                 "unit": "kg",

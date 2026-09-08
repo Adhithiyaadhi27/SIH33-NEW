@@ -1,11 +1,13 @@
 import { GlassCard, MetricTile, GlassBadge } from '../ui/primitives';
 import { mockFarmers } from '../../data/mockFarmers';
 import { useRealtime } from '../../services/realtime';
+import useTranslation from '../../services/useTranslation';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ScanSearch, IdCard } from 'lucide-react';
 
 export default function FarmerDashboard() {
+  const { t } = useTranslation();
   const [earnings, setEarnings] = useState(84250);
   const navigate = useNavigate();
 
@@ -24,9 +26,9 @@ export default function FarmerDashboard() {
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <GlassBadge gold><span className="flex h-1.5 w-1.5 rounded-full bg-soil-gold animate-pulse" /> Registration status: VERIFIED</GlassBadge>
-          <h1 className="font-display font-extrabold text-2xl text-text-primary mt-2">Farmer Cockpit</h1>
-          <p className="text-xs text-text-muted">Produce inventory, prices, AI grading, passport &amp; earnings</p>
+          <GlassBadge gold><span className="flex h-1.5 w-1.5 rounded-full bg-soil-gold animate-pulse" /> {t('farmer.status')}</GlassBadge>
+          <h1 className="font-display font-extrabold text-2xl text-text-primary mt-2">{t('farmer.cockpit')}</h1>
+          <p className="text-xs text-text-muted">{t('farmer.subtitle')}</p>
         </div>
       </div>
 
@@ -41,8 +43,8 @@ export default function FarmerDashboard() {
               <ScanSearch className="w-4 h-4 text-soil-gold" />
             </div>
             <div>
-              <div className="text-sm font-bold text-text-primary">AI Quality Grading</div>
-              <div className="text-[10px] text-text-muted">Run a live CV scan on your lot</div>
+              <div className="text-sm font-bold text-text-primary">{t('farmer.ai_grading')}</div>
+              <div className="text-[10px] text-text-muted">{t('farmer.ai_grading_desc')}</div>
             </div>
           </button>
         </GlassCard>
@@ -55,8 +57,8 @@ export default function FarmerDashboard() {
               <IdCard className="w-4 h-4" />
             </div>
             <div>
-              <div className="text-sm font-bold text-text-primary">Digital Produce Passport</div>
-              <div className="text-[10px] text-text-muted">Verifiable batch identity</div>
+              <div className="text-sm font-bold text-text-primary">{t('farmer.passport')}</div>
+              <div className="text-[10px] text-text-muted">{t('farmer.passport_desc')}</div>
             </div>
           </button>
         </GlassCard>
@@ -64,15 +66,15 @@ export default function FarmerDashboard() {
 
       {/* Top metrics */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <MetricTile label="Total Yield" value="5,000 kg" />
-        <MetricTile label="Avg Price" value="₹24.50/kg" accent="text-soil-gold" />
-        <MetricTile label="Live Earnings" value={`₹${earnings.toLocaleString()}`} accent="text-soil-mint" />
-        <MetricTile label="Grade" value="Grade A" />
+        <MetricTile label={t('role.total_yield')} value="5,000 kg" />
+        <MetricTile label={t('role.avg_price')} value="₹24.50/kg" accent="text-soil-gold" />
+        <MetricTile label={t('role.earnings')} value={`₹${earnings.toLocaleString()}`} accent="text-soil-mint" />
+        <MetricTile label={t('role.grade')} value="Grade A" />
       </div>
 
       {/* Inventory */}
       <GlassCard className="p-5 space-y-3">
-        <h2 className="font-display font-bold text-base text-text-primary">Harvest Batches &amp; Produce Inventory</h2>
+        <h2 className="font-display font-bold text-base text-text-primary">{t('farmer.inventory')}</h2>
         <div className="space-y-2.5">
           {mockFarmers.map((f) => (
             <div key={f.id} className="glass-panel-sm p-3.5 flex items-center justify-between gap-3">
@@ -92,7 +94,7 @@ export default function FarmerDashboard() {
       {/* Orders & crop prices */}
       <div className="grid md:grid-cols-2 gap-4">
         <GlassCard className="p-5 space-y-3">
-          <h2 className="font-display font-bold text-base text-text-primary">Current Crop Prices</h2>
+          <h2 className="font-display font-bold text-base text-text-primary">{t('farmer.crop_prices')}</h2>
           <div className="space-y-2">
             {[
               { crop: 'Tomato', price: '₹30/kg', change: '+2.1%' },
@@ -111,7 +113,7 @@ export default function FarmerDashboard() {
         </GlassCard>
 
         <GlassCard className="p-5 space-y-3">
-          <h2 className="font-display font-bold text-base text-text-primary">Pending Orders</h2>
+          <h2 className="font-display font-bold text-base text-text-primary">{t('farmer.pending_orders')}</h2>
           <div className="space-y-2">
             {[
               { id: 'ORD-8811', product: 'Tomato', qty: '500 kg', eta: 'Today' },

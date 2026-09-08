@@ -4,7 +4,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Sprout, ChevronDown, Bell, ShoppingBag, Menu, X, User, LogOut } from 'lucide-react';
 import { useRoleStore, type RoleName } from '../store/roleStore';
 import { useMarketplaceStore } from '../store/marketplaceStore';
+import useTranslation from '../services/useTranslation';
 import RegistrationModal from './registration/RegistrationModal';
+import LanguageToggle from './LanguageToggle';
 
 const roles: RoleName[] = ['Farmer', 'FPO', 'Consumer', 'Bulk Buyer', 'Logistics', 'Admin'];
 
@@ -17,9 +19,19 @@ const roleRoute: Record<RoleName, string> = {
   Admin: '/admin',
 };
 
+const tRoleKey: Record<RoleName, string> = {
+  Farmer: 'navbar.farmer',
+  FPO: 'navbar.fpo',
+  Consumer: 'navbar.consumer',
+  'Bulk Buyer': 'navbar.bulk_buyer',
+  Logistics: 'navbar.logistics',
+  Admin: 'navbar.admin',
+};
+
 export default function Navbar() {
   const { activeRole, setActiveRole } = useRoleStore();
   const { totalItems } = useMarketplaceStore();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openRole, setOpenRole] = useState<string | null>(null);
@@ -45,56 +57,62 @@ export default function Navbar() {
                 MANN VASSAM
               </span>
               <span className="hidden md:block text-[9px] uppercase tracking-widest text-soil-gold font-bold">
-                மண் வாசம் · Smart Soil Marketplace
+                {t('hero.tagline')}
               </span>
             </div>
           </Link>
 
           {/* Role navigation with dropdowns */}
           <nav className="hidden lg:flex items-center gap-0.5">
-            {roles.map((role) => (
-              <div key={role} className="relative">
-                <button
-                  onClick={() => setOpenRole(openRole === role ? null : role)}
-                  className={`flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-semibold transition cursor-pointer ${
-                    activeRole === role ? 'bg-white/15 text-soil-gold' : 'text-text-secondary hover:text-text-primary hover:bg-white/10'
-                  }`}
-                >
-                  {role}
-                  <ChevronDown className="w-3 h-3 opacity-60" />
-                </button>
-                <AnimatePresence>
-                  {openRole === role && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 8 }}
-                      className="absolute left-0 mt-2 w-56 glass-panel p-2 z-50"
-                    >
-                      <div className="px-3 py-1.5 text-[10px] uppercase font-bold text-soil-gold tracking-wider">
-                        {role} Cockpit
-                      </div>
-                      <button
-                        onClick={() => handleRoleSelect(role)}
-                        className="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-text-primary hover:bg-white/10 cursor-pointer"
+            {roles.map((role) => {
+              const label = t(tRoleKey[role]);
+              return (
+                <div key={role} className="relative">
+                  <button
+                    onClick={() => setOpenRole(openRole === role ? null : role)}
+                    className={`flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-semibold transition cursor-pointer ${
+                      activeRole === role ? 'bg-white/15 text-soil-gold' : 'text-text-secondary hover:text-text-primary hover:bg-white/10'
+                    }`}
+                  >
+                    {label}
+                    <ChevronDown className="w-3 h-3 opacity-60" />
+                  </button>
+                  <AnimatePresence>
+                    {openRole === role && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 8 }}
+                        className="absolute left-0 mt-2 w-56 glass-panel p-2 z-50"
                       >
-                        Open {role} Dashboard
-                      </button>
-                      <button
-                        onClick={() => { setOpenRole(null); navigate('/marketplace'); }}
-                        className="w-full text-left px-3 py-2 rounded-xl text-xs text-text-muted hover:bg-white/10 hover:text-text-primary cursor-pointer"
-                      >
-                        Browse Marketplace
-                      </button>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            ))}
+                        <div className="px-3 py-1.5 text-[10px] uppercase font-bold text-soil-gold tracking-wider">
+                          {t('navbar.cockpit', { role: label })}
+                        </div>
+                        <button
+                          onClick={() => handleRoleSelect(role)}
+                          className="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-text-primary hover:bg-white/10 cursor-pointer"
+                        >
+                          {t('navbar.open_dashboard', { role: label })}
+                        </button>
+                        <button
+                          onClick={() => { setOpenRole(null); navigate('/marketplace'); }}
+                          className="w-full text-left px-3 py-2 rounded-xl text-xs text-text-muted hover:bg-white/10 hover:text-text-primary cursor-pointer"
+                        >
+                          {t('navbar.browse_marketplace')}
+                        </button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              );
+            })}
           </nav>
 
           {/* Right actions */}
           <div className="flex items-center gap-2">
+            {/* Language toggle */}
+            <LanguageToggle />
+
             <button
               className="relative p-2 text-text-secondary hover:text-text-primary hover:bg-white/10 rounded-xl transition cursor-pointer"
               title="Notifications"
@@ -124,7 +142,7 @@ export default function Navbar() {
               className="hidden sm:flex items-center gap-1.5 bg-gradient-to-r from-soil-emerald to-soil-leaf text-white pl-5 pr-4 py-2 rounded-full text-xs font-bold shadow-glow-emerald hover:brightness-110 transition cursor-pointer"
             >
               <User className="w-3.5 h-3.5" />
-              Dynamic Registration
+              {t('navbar.registration')}
             </button>
 
             {/* Mobile menu toggle */}
@@ -152,17 +170,17 @@ export default function Navbar() {
                   onClick={() => { handleRoleSelect(role); setMobileOpen(false); }}
                   className="block w-full text-left px-3 py-2.5 rounded-xl text-sm font-semibold text-text-primary hover:bg-white/10 cursor-pointer"
                 >
-                  {role}
+                  {t(tRoleKey[role])}
                 </button>
               ))}
               <button
                 onClick={() => { setShowRegistration(true); setMobileOpen(false); }}
                 className="block w-full text-left px-3 py-2.5 rounded-xl text-sm font-bold text-soil-base bg-gradient-to-r from-soil-emerald to-soil-leaf cursor-pointer"
               >
-                Dynamic Registration
+                {t('navbar.registration')}
               </button>
               <div className="flex items-center gap-2 px-3 py-2 text-xs text-text-muted">
-                <LogOut className="w-3.5 h-3.5" /> Sign out (demo)
+                <LogOut className="w-3.5 h-3.5" /> {t('navbar.sign_out')}
               </div>
             </motion.div>
           )}

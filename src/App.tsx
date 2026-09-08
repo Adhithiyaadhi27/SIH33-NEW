@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ToastContainer from './components/notifications/Toast';
+import { useI18nInit } from './services/useTranslation';
 
 // Pages
 import Home from './pages/Home';
@@ -35,6 +36,7 @@ function Loader() {
 }
 
 function BrowserRouterWrapper() {
+  useI18nInit();
   return (
     <Router>
       <div className="min-h-screen flex flex-col bg-soil-base font-sans">

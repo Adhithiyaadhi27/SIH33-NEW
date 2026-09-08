@@ -1,35 +1,59 @@
+import { useState } from 'react';
 import { useMarketplaceStore } from '../store/marketplaceStore';
 import { GlassCard, GlassButton } from '../components/ui/primitives';
 import { Trash2, ShoppingBag, ArrowDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useNotificationStore } from '../store/notificationStore';
+import useTranslation from '../services/useTranslation';
+import CheckoutModal, { type CheckoutItem } from '../components/payment/CheckoutModal';
 
 export default function CartPage() {
+  const { t } = useTranslation();
   const { cart, removeFromCart, updateQuantity, clearCart, totalItems, totalValue } = useMarketplaceStore();
-  const pushToast = useNotificationStore((s) => s.pushToast);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [checkoutItems, setCheckoutItems] = useState<CheckoutItem[]>([]);
+
+  const openCheckout = () => {
+    setCheckoutItems(
+      cart.map((item) => ({
+        productId: item.id,
+        name: item.name,
+        unit: item.unit,
+        quantity: item.quantity,
+        price: item.price,
+        image: item.image,
+        grade: item.grade,
+      })),
+    );
+    setCheckoutOpen(true);
+  };
+
+  const handlePaid = () => {
+    clearCart();
+    setCheckoutOpen(false);
+  };
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-24 space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-display font-extrabold text-2xl text-text-primary">Your Market Basket</h1>
-          <p className="text-xs text-text-muted mt-1">{totalItems()} items · ₹{totalValue().toFixed(2)}</p>
+          <h1 className="font-display font-extrabold text-2xl text-text-primary">{t('cart.title')}</h1>
+          <p className="text-xs text-text-muted mt-1">{t('cart.items', { count: totalItems() })} · ₹{totalValue().toFixed(2)}</p>
         </div>
         <Link to="/marketplace">
-          <GlassButton variant="glass">Continue Shopping</GlassButton>
+          <GlassButton variant="glass">{t('cart.continue_shopping')}</GlassButton>
         </Link>
       </div>
 
       {cart.length === 0 ? (
         <GlassCard className="p-12 text-center space-y-3">
           <div className="flex justify-center text-soil-gold"><ShoppingBag className="w-10 h-10" /></div>
-          <h3 className="font-display font-bold text-lg text-text-primary">Your basket is empty</h3>
+          <h3 className="font-display font-bold text-lg text-text-primary">{t('cart.empty')}</h3>
           <p className="text-xs text-text-muted max-w-sm mx-auto">
-            Browse the marketplace and add fresh verified produce.
+            {t('cart.empty_hint')}
           </p>
           <div className="pt-2">
             <Link to="/marketplace" className="inline-flex items-center gap-1.5 text-xs font-bold text-soil-gold hover:underline">
-              Explore Marketplace <ArrowDown className="w-3.5 h-3.5" />
+              {t('cart.explore')} <ArrowDown className="w-3.5 h-3.5" />
             </Link>
           </div>
         </GlassCard>
@@ -72,27 +96,25 @@ export default function CartPage() {
 
           <GlassCard className="p-5 flex flex-wrap items-center justify-between gap-3">
             <div>
-              <div className="text-xs text-text-muted">Total</div>
+              <div className="text-xs text-text-muted">{t('cart.total')}</div>
               <div className="font-display font-extrabold text-2xl text-soil-gold">₹{totalValue().toFixed(2)}</div>
             </div>
             <div className="flex gap-3">
-              <GlassButton variant="ghost" onClick={clearCart}>Clear</GlassButton>
-              <GlassButton
-                variant="green"
-                onClick={() =>
-                  pushToast({
-                    title: 'Order Placed',
-                    message: 'Your produce order has been received successfully.',
-                    type: 'success',
-                  })
-                }
-              >
-                Checkout
+              <GlassButton variant="ghost" onClick={clearCart}>{t('cart.clear')}</GlassButton>
+              <GlassButton variant="green" onClick={openCheckout}>
+                {t('cart.checkout')}
               </GlassButton>
             </div>
           </GlassCard>
         </div>
       )}
+
+      <CheckoutModal
+        open={checkoutOpen}
+        onClose={() => setCheckoutOpen(false)}
+        items={checkoutItems}
+        onSuccess={handlePaid}
+      />
     </div>
   );
 }

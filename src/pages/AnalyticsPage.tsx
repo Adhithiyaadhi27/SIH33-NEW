@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   ResponsiveContainer,
   AreaChart,
@@ -12,8 +12,22 @@ import {
   Legend,
 } from 'recharts';
 import { GlassCard, FadeIn, MetricTile } from '../components/ui/primitives';
+import useTranslation from '../services/useTranslation';
+import api from '../services/api';
 
-const forecastData = [
+interface ForecastPoint {
+  day: string;
+  demand: number;
+  supply: number;
+}
+
+interface DistrictPoint {
+  name: string;
+  demand: number;
+  supply: number;
+}
+
+const FALLBACK_FORECAST: ForecastPoint[] = [
   { day: 'D-10', demand: 3100, supply: 3300 },
   { day: 'D-7', demand: 3250, supply: 3300 },
   { day: 'D-4', demand: 3400, supply: 3250 },
@@ -23,7 +37,7 @@ const forecastData = [
   { day: 'D+14', demand: 5000, supply: 3200 },
 ];
 
-const districtData = [
+const FALLBACK_DISTRICT: DistrictPoint[] = [
   { name: 'Chennai', demand: 5000, supply: 3200 },
   { name: 'Madurai', demand: 2200, supply: 5000 },
   { name: 'Coimbatore', demand: 4100, supply: 2800 },
@@ -33,7 +47,40 @@ const districtData = [
 ];
 
 export default function AnalyticsPage() {
-  const [shortageRisk] = useState(1800);
+  const { t } = useTranslation();
+  const [forecastData, setForecastData] = useState<ForecastPoint[]>(FALLBACK_FORECAST);
+  const [districtData, setDistrictData] = useState<DistrictPoint[]>(FALLBACK_DISTRICT);
+  const [metrics, setMetrics] = useState({ currentDemand: 3500, availableSupply: 3200, shortage: 1800, confidence: 92.4 });
+
+  useEffect(() => {
+    let cancelled = false;
+    api
+      .get('/analytics/forecast')
+      .then((res) => {
+        if (cancelled || !res.data?.success) return;
+        const trend: Array<{ date: string; demand: number; supply: number }> = res.data.forecastData ?? [];
+        if (trend.length) {
+          setForecastData(trend.map((p) => ({ day: p.date, demand: p.demand, supply: p.supply })));
+        }
+        const m = res.data.metrics ?? {};
+        if (res.data.districtData?.length) setDistrictData(res.data.districtData);
+        if (typeof m.currentDemand === 'number' || typeof m.shortage === 'number' || typeof m.confidence === 'number') {
+          const last = trend[trend.length - 1];
+          setMetrics({
+            currentDemand: typeof m.currentDemand === 'number' ? m.currentDemand : 3500,
+            availableSupply: typeof m.availableSupply === 'number' ? m.availableSupply : last?.supply ?? 3200,
+            shortage: typeof m.shortage === 'number' ? m.shortage : 1800,
+            confidence: typeof m.confidence === 'number' ? m.confidence : 92.4,
+          });
+        }
+      })
+      .catch(() => {
+        // keep fallback data if the backend is unreachable
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <div className="bg-agri-forest min-h-screen">
@@ -41,30 +88,30 @@ export default function AnalyticsPage() {
         <FadeIn>
           <div className="text-center space-y-2">
             <div className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-soil-gold">
-              <span className="h-px w-6 bg-soil-gold/60" /> Analytics
+              <span className="h-px w-6 bg-soil-gold/60" /> {t('analytics.title')}
             </div>
             <h1 className="font-display font-extrabold text-3xl sm:text-4xl text-text-primary">
-              Demand & Supply Intelligence
+              {t('analytics.heading')}
             </h1>
             <p className="text-sm text-text-muted">
-              14–30 day regional shortage forecast based on order velocity, seasonality and weather telemetry.
+              {t('analytics.subtitle')}
             </p>
           </div>
         </FadeIn>
 
         {/* Metric tiles */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <MetricTile label="Current Demand" value="3,500 kg" accent="text-soil-gold" />
-          <MetricTile label="Available Supply" value="3,200 kg" accent="text-soil-mint" />
-          <MetricTile label="Predicted Shortage" value={`${shortageRisk.toLocaleString()} kg`} accent="text-soil-goldSoft" />
-          <MetricTile label="Forecast Confidence" value="92.4%" accent="text-soil-pale" />
+          <MetricTile label={t('analytics.current_demand')} value={`${metrics.currentDemand.toLocaleString()} kg`} accent="text-soil-gold" />
+          <MetricTile label={t('analytics.available_supply')} value={`${metrics.availableSupply.toLocaleString()} kg`} accent="text-soil-mint" />
+          <MetricTile label={t('analytics.predicted_shortage')} value={`${metrics.shortage.toLocaleString()} kg`} accent="text-soil-goldSoft" />
+          <MetricTile label={t('analytics.confidence')} value={`${metrics.confidence.toFixed(1)}%`} accent="text-soil-pale" />
         </div>
 
         {/* Demand vs supply area chart */}
         <FadeIn delay={0.05}>
           <GlassCard className="p-5 sm:p-6">
             <h2 className="font-display font-bold text-base text-text-primary mb-4">
-              Tomato · Chennai Region · 14-Day Forecast
+              {t('analytics.region')}
             </h2>
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
@@ -92,8 +139,8 @@ export default function AnalyticsPage() {
                     labelStyle={{ color: '#F6BD60' }}
                   />
                   <Legend wrapperStyle={{ color: '#EAF6EE', fontSize: 12 }} />
-                  <Area type="monotone" dataKey="demand" name="Demand (kg)" stroke="#F6BD60" strokeWidth={2} fill="url(#demandGrad)" />
-                  <Area type="monotone" dataKey="supply" name="Supply (kg)" stroke="#2E8B57" strokeWidth={2} fill="url(#supplyGrad)" />
+                  <Area type="monotone" dataKey="demand" name={t('analytics.demand_kg')} stroke="#F6BD60" strokeWidth={2} fill="url(#demandGrad)" />
+                  <Area type="monotone" dataKey="supply" name={t('analytics.supply_kg')} stroke="#2E8B57" strokeWidth={2} fill="url(#supplyGrad)" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -104,7 +151,7 @@ export default function AnalyticsPage() {
         <FadeIn delay={0.1}>
           <GlassCard className="p-5 sm:p-6">
             <h2 className="font-display font-bold text-base text-text-primary mb-4">
-              District-Level Supply vs Demand (Tamil Nadu)
+              {t('analytics.district_subtitle')}
             </h2>
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
@@ -123,8 +170,8 @@ export default function AnalyticsPage() {
                     cursor={{ fill: 'rgba(255,255,255,0.05)' }}
                   />
                   <Legend wrapperStyle={{ color: '#EAF6EE', fontSize: 12 }} />
-                  <Bar dataKey="demand" name="Demand (kg)" fill="#F6BD60" radius={[6, 6, 0, 0]} />
-                  <Bar dataKey="supply" name="Supply (kg)" fill="#2E8B57" radius={[6, 6, 0, 0]} />
+                  <Bar dataKey="demand" name={t('analytics.demand_kg')} fill="#F6BD60" radius={[6, 6, 0, 0]} />
+                  <Bar dataKey="supply" name={t('analytics.supply_kg')} fill="#2E8B57" radius={[6, 6, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

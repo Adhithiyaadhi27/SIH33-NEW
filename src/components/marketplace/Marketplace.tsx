@@ -1,17 +1,69 @@
-import { useState } from 'react';
-import { LayoutGrid, List, Search, Filter } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { LayoutGrid, List, Search, Filter, Loader2, Radio } from 'lucide-react';
 import { GlassCard } from '../ui/primitives';
-import { mockProducts } from '../../data/mockProducts';
-import { useRealtime } from '../../services/realtime';
+import { mockProducts, type MockProduct } from '../../data/mockProducts';
+import { useRealtime, useRealtimeStatus } from '../../services/realtime';
+import api from '../../services/api';
+import useTranslation from '../../services/useTranslation';
 import ProductCard from './ProductCard';
 
 const CATEGORIES = ['All', 'Vegetables', 'Fruits'];
 
+const FEED_LABEL: Record<string, string> = {
+  live: 'marketplace.live_feed',
+  simulated: 'marketplace.simulated_feed',
+  connecting: 'marketplace.connecting',
+};
+
+function toMockProduct(p: Record<string, unknown>): MockProduct {
+  return {
+    id: String(p.id ?? ''),
+    name: String(p.name ?? ''),
+    category: String(p.category ?? 'Vegetables'),
+    price: Number(p.price ?? 0),
+    unit: String(p.unit ?? 'kg'),
+    availableQty: Number(p.availableQty ?? 0),
+    grade: String(p.grade ?? 'Grade A'),
+    supplier: String(p.supplier ?? 'Verified FPO'),
+    location: String(p.location ?? ''),
+    harvestDate: String(p.harvestDate ?? ''),
+    availability: String(p.availability ?? 'Ready Stock'),
+    image: String(p.image ?? ''),
+    minBulkQty: p.minBulkQty ? Number(p.minBulkQty) : undefined,
+    bulkPrice: p.bulkPrice ? Number(p.bulkPrice) : undefined,
+    brand: 'Farm Passport Verified',
+  };
+}
+
 export default function Marketplace() {
+  const { t } = useTranslation();
+  const feedStatus = useRealtimeStatus();
   const [view, setView] = useState<'grid' | 'list'>('grid');
   const [category, setCategory] = useState('All');
   const [query, setQuery] = useState('');
-  const [products, setProducts] = useState(mockProducts);
+  const [products, setProducts] = useState<MockProduct[]>(mockProducts);
+  const [loading, setLoading] = useState(true);
+
+  // Load the live catalog from the backend (fallback to mock data when unreachable)
+  useEffect(() => {
+    let cancelled = false;
+    api
+      .get('/products')
+      .then((res) => {
+        if (cancelled || !res.data?.success) return;
+        const mapped = (res.data.products ?? []).map((p: Record<string, unknown>) => toMockProduct(p));
+        if (mapped.length > 0) setProducts(mapped);
+      })
+      .catch(() => {
+        /* keep mockProducts when backend is down */
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Live realtime pricing & stock updates
   useRealtime('price:update', ({ productId, price }) => {
@@ -31,8 +83,29 @@ export default function Marketplace() {
     <GlassCard className="p-5 sm:p-6 space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="font-display font-extrabold text-lg text-text-primary">Marketplace</h2>
-          <p className="text-xs text-text-muted mt-0.5">Sample product listings, real-time pricing</p>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h2 className="font-display font-extrabold text-lg text-text-primary">{t('marketplace.title')}</h2>
+            <span
+              className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider border ${
+                feedStatus === 'live'
+                  ? 'bg-emerald-500/15 text-emerald-300 border-emerald-400/40'
+                  : feedStatus === 'connecting'
+                    ? 'bg-white/10 text-text-muted border-white/20'
+                    : 'bg-soil-gold/15 text-soil-gold border-soil-gold/30'
+              }`}
+              title={feedStatus === 'live' ? t('marketplace.live_feed') : feedStatus === 'simulated' ? t('marketplace.simulated_feed') : t('marketplace.connecting')}
+            >
+              <Radio className="w-3 h-3" />
+              <span className="relative flex h-1.5 w-1.5">
+                {feedStatus !== 'connecting' && (
+                  <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${feedStatus === 'live' ? 'bg-emerald-400' : 'bg-soil-gold'}`} />
+                )}
+                <span className={`relative inline-flex rounded-full h-1.5 w-1.5 ${feedStatus === 'live' ? 'bg-emerald-400' : feedStatus === 'simulated' ? 'bg-soil-gold' : 'bg-text-muted'}`} />
+              </span>
+              {t(FEED_LABEL[feedStatus] ?? 'marketplace.connecting')}
+            </span>
+          </div>
+          <p className="text-xs text-text-muted mt-0.5">{t('marketplace.subtitle')}</p>
         </div>
 
         <div className="flex items-center gap-2">
@@ -75,17 +148,21 @@ export default function Marketplace() {
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search produce..."
+          placeholder={t('marketplace.search')}
           className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white/5 border border-white/15 text-sm focus:outline-none focus:ring-2 focus:ring-soil-emerald placeholder:text-text-muted/50"
         />
       </div>
 
       {/* Products */}
-      {filtered.length === 0 ? (
+      {loading ? (
+        <div className="flex items-center justify-center gap-2 text-sm text-text-muted py-12 glass-panel-sm rounded-2xl">
+          <Loader2 className="w-4 h-4 animate-spin text-soil-gold" /> {t('marketplace.loading_live')}
+        </div>
+      ) : filtered.length === 0 ? (
         <div className="text-center py-12 glass-panel-sm rounded-2xl">
           <div className="text-3xl mb-2">🥬</div>
-          <div className="font-bold text-text-primary">No produce matches this filter</div>
-          <p className="text-xs text-text-muted mt-1">Try adjusting your search or category.</p>
+          <div className="font-bold text-text-primary">{t('marketplace.no_results')}</div>
+          <p className="text-xs text-text-muted mt-1">{t('marketplace.no_results_hint')}</p>
         </div>
       ) : view === 'grid' ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">

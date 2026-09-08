@@ -2,8 +2,18 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { GlassCard } from '../ui/primitives';
 import { useRoleStore, type RoleName } from '../../store/roleStore';
+import useTranslation from '../../services/useTranslation';
 
 const roles: RoleName[] = ['Farmer', 'FPO', 'Consumer', 'Bulk Buyer', 'Admin'];
+
+const roleLabelKey: Record<RoleName, string> = {
+  Farmer: 'navbar.farmer',
+  FPO: 'navbar.fpo',
+  Consumer: 'navbar.consumer',
+  'Bulk Buyer': 'navbar.bulk_buyer',
+  Logistics: 'navbar.logistics',
+  Admin: 'navbar.admin',
+};
 
 const roleIcons: Record<string, string> = {
   Farmer: '🚜',
@@ -24,6 +34,7 @@ const roleRoute: Record<RoleName, string> = {
 };
 
 export default function RoleSwitcher() {
+  const { t } = useTranslation();
   const { activeRole, setActiveRole } = useRoleStore();
   const navigate = useNavigate();
 
@@ -36,9 +47,9 @@ export default function RoleSwitcher() {
     <GlassCard className="p-5 sm:p-6 space-y-4">
       <div>
         <h2 className="font-display font-extrabold text-lg text-text-primary">
-          Floating Interactive Panels
+          {t('role.switcher_title')}
         </h2>
-        <p className="text-xs text-text-muted mt-0.5">Switch between Role Cockpits</p>
+        <p className="text-xs text-text-muted mt-0.5">{t('role.switcher_subtitle')}</p>
       </div>
 
       <div className="grid grid-cols-2 gap-2.5">
@@ -59,10 +70,10 @@ export default function RoleSwitcher() {
               <span className="text-xl">{roleIcons[role]}</span>
               <div>
                 <div className={`text-sm font-bold ${active ? 'text-soil-gold' : 'text-text-primary'}`}>
-                  {role}
+                  {t(roleLabelKey[role])}
                 </div>
                 <div className="text-[10px] text-text-muted">
-                  {active ? '● Active cockpit' : 'Switch view'}
+                  {active ? `● ${t('role.active_cockpit')}` : t('role.switch_view')}
                 </div>
               </div>
             </motion.button>
@@ -71,8 +82,7 @@ export default function RoleSwitcher() {
       </div>
 
       <div className="glass-panel-sm p-3.5 text-xs text-text-muted">
-        <span className="text-soil-gold font-bold">Role: {activeRole}</span> — select a role to open
-        its dedicated cockpit dashboard.
+        <span className="text-soil-gold font-bold">{t('role.select', { role: t(roleLabelKey[activeRole]) })}</span>
       </div>
     </GlassCard>
   );
