@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sprout, ChevronDown, Bell, ShoppingBag, Menu, X, User, LogOut } from 'lucide-react';
+import { Sprout, ChevronDown, Bell, ShoppingBag, Heart, MessageSquare, Menu, X, User, LogOut } from 'lucide-react';
 import { useRoleStore, type RoleName } from '../store/roleStore';
 import { useMarketplaceStore } from '../store/marketplaceStore';
+import { useWishlistStore } from '../store/wishlistStore';
+import { useNegotiationStore } from '../store/negotiationStore';
 import useTranslation from '../services/useTranslation';
 import RegistrationModal from './registration/RegistrationModal';
 import LanguageToggle from './LanguageToggle';
@@ -31,6 +33,8 @@ const tRoleKey: Record<RoleName, string> = {
 export default function Navbar() {
   const { activeRole, setActiveRole } = useRoleStore();
   const { totalItems } = useMarketplaceStore();
+  const { items: wishlistItems } = useWishlistStore();
+  const { negotiations } = useNegotiationStore();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -94,22 +98,52 @@ export default function Navbar() {
                         >
                           {t('navbar.open_dashboard', { role: label })}
                         </button>
-                        <button
-                          onClick={() => { setOpenRole(null); navigate('/marketplace'); }}
-                          className="w-full text-left px-3 py-2 rounded-xl text-xs text-text-muted hover:bg-white/10 hover:text-text-primary cursor-pointer"
-                        >
-                          {t('navbar.browse_marketplace')}
-                        </button>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              );
-            })}
-          </nav>
+            <button
+              onClick={() => { setOpenRole(null); navigate('/marketplace'); }}
+              className="w-full text-left px-3 py-2 rounded-xl text-xs text-text-muted hover:bg-white/10 hover:text-text-primary cursor-pointer"
+            >
+              Browse Marketplace
+            </button>
+          </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    );
+  })}
+</nav>
+
+{/* Services dropdown */}
+<div className="hidden lg:flex items-center gap-0.5 relative">
+  <button
+    onClick={() => setOpenRole(openRole === 'services' ? null : 'services')}
+    className={`flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-semibold transition cursor-pointer ${
+      openRole === 'services' ? 'bg-white/15 text-soil-gold' : 'text-text-secondary hover:text-text-primary hover:bg-white/10'
+    }`}
+  >
+    Services
+    <ChevronDown className="w-3 h-3 opacity-60" />
+  </button>
+  <AnimatePresence>
+    {openRole === 'services' && (
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 8 }}
+        className="absolute left-0 top-full mt-2 w-56 glass-panel p-2 z-50"
+      >
+        <button onClick={() => { setOpenRole(null); navigate('/tracking'); }} className="w-full text-left px-3 py-2 rounded-xl text-xs text-text-muted hover:bg-white/10 hover:text-text-primary cursor-pointer">Order Tracking</button>
+        <button onClick={() => { setOpenRole(null); navigate('/subscriptions'); }} className="w-full text-left px-3 py-2 rounded-xl text-xs text-text-muted hover:bg-white/10 hover:text-text-primary cursor-pointer">Subscriptions</button>
+        <button onClick={() => { setOpenRole(null); navigate('/schemes'); }} className="w-full text-left px-3 py-2 rounded-xl text-xs text-text-muted hover:bg-white/10 hover:text-text-primary cursor-pointer">Govt Schemes</button>
+        <button onClick={() => { setOpenRole(null); navigate('/disputes'); }} className="w-full text-left px-3 py-2 rounded-xl text-xs text-text-muted hover:bg-white/10 hover:text-text-primary cursor-pointer">Dispute Resolution</button>
+        <button onClick={() => { setOpenRole(null); navigate('/inventory'); }} className="w-full text-left px-3 py-2 rounded-xl text-xs text-text-muted hover:bg-white/10 hover:text-text-primary cursor-pointer">Farm Inventory</button>
+        <button onClick={() => { setOpenRole(null); navigate('/revenue'); }} className="w-full text-left px-3 py-2 rounded-xl text-xs text-text-muted hover:bg-white/10 hover:text-text-primary cursor-pointer">Revenue Analytics</button>
+      </motion.div>
+    )}
+  </AnimatePresence>
+</div>
 
           {/* Right actions */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             {/* Language toggle */}
             <LanguageToggle />
 
@@ -120,6 +154,32 @@ export default function Navbar() {
               <Bell className="w-5 h-5" />
               <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-soil-gold animate-pulse" />
             </button>
+
+            <Link
+              to="/wishlist"
+              className="relative p-2 text-text-secondary hover:text-text-primary hover:bg-white/10 rounded-xl transition cursor-pointer"
+              title="Wishlist"
+            >
+              <Heart className="w-5 h-5" />
+              {wishlistItems.length > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[8px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                  {wishlistItems.length}
+                </span>
+              )}
+            </Link>
+
+            <Link
+              to="/negotiations"
+              className="relative p-2 text-text-secondary hover:text-text-primary hover:bg-white/10 rounded-xl transition cursor-pointer"
+              title="Negotiations"
+            >
+              <MessageSquare className="w-5 h-5" />
+              {negotiations.filter((n) => n.status === 'countered' || n.status === 'open').length > 0 && (
+                <span className="absolute -top-1 -right-1 bg-soil-gold text-soil-base text-[8px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                  {negotiations.filter((n) => n.status === 'countered' || n.status === 'open').length}
+                </span>
+              )}
+            </Link>
 
             <Link
               to="/cart"
@@ -173,6 +233,45 @@ export default function Navbar() {
                   {t(tRoleKey[role])}
                 </button>
               ))}
+              <div className="glass-divider my-1" />
+              <button
+                onClick={() => { navigate('/wishlist'); setMobileOpen(false); }}
+                className="block w-full text-left px-3 py-2.5 rounded-xl text-sm font-semibold text-text-primary hover:bg-white/10 cursor-pointer"
+              >
+                Wishlist {wishlistItems.length > 0 && <span className="text-red-400">({wishlistItems.length})</span>}
+              </button>
+              <button
+                onClick={() => { navigate('/negotiations'); setMobileOpen(false); }}
+                className="block w-full text-left px-3 py-2.5 rounded-xl text-sm font-semibold text-text-primary hover:bg-white/10 cursor-pointer"
+              >
+                Negotiations {negotiations.filter((n) => n.status === 'countered' || n.status === 'open').length > 0 && <span className="text-soil-gold">({negotiations.filter((n) => n.status === 'countered' || n.status === 'open').length})</span>}
+              </button>
+              <div className="glass-divider my-1" />
+              <button
+                onClick={() => { navigate('/tracking'); setMobileOpen(false); }}
+                className="block w-full text-left px-3 py-2.5 rounded-xl text-sm font-semibold text-text-primary hover:bg-white/10 cursor-pointer"
+              >
+                Order Tracking
+              </button>
+              <button
+                onClick={() => { navigate('/subscriptions'); setMobileOpen(false); }}
+                className="block w-full text-left px-3 py-2.5 rounded-xl text-sm font-semibold text-text-primary hover:bg-white/10 cursor-pointer"
+              >
+                Subscriptions
+              </button>
+              <button
+                onClick={() => { navigate('/schemes'); setMobileOpen(false); }}
+                className="block w-full text-left px-3 py-2.5 rounded-xl text-sm font-semibold text-text-primary hover:bg-white/10 cursor-pointer"
+              >
+                Govt Schemes
+              </button>
+              <button
+                onClick={() => { navigate('/disputes'); setMobileOpen(false); }}
+                className="block w-full text-left px-3 py-2.5 rounded-xl text-sm font-semibold text-text-primary hover:bg-white/10 cursor-pointer"
+              >
+                Dispute Resolution
+              </button>
+              <div className="glass-divider my-1" />
               <button
                 onClick={() => { setShowRegistration(true); setMobileOpen(false); }}
                 className="block w-full text-left px-3 py-2.5 rounded-xl text-sm font-bold text-soil-base bg-gradient-to-r from-soil-emerald to-soil-leaf cursor-pointer"

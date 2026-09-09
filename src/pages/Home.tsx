@@ -6,6 +6,8 @@ import SupplyDemandHeatmap from '../components/heatmap/SupplyDemandHeatmap';
 import Marketplace from '../components/marketplace/Marketplace';
 import RoleSwitcher from '../components/roles/RoleSwitcher';
 import LiveActivityFeed from '../components/activity/LiveActivityFeed';
+import OrderTrackingWidget from '../components/tracking/OrderTrackingWidget';
+import WeatherWidget from '../components/weather/WeatherWidget';
 import { FadeIn } from '../components/ui/primitives';
 
 export default function Home() {
@@ -52,10 +54,12 @@ export default function Home() {
 
         {/* Floating Interactive Panels — right side */}
         <div className="grid lg:grid-cols-3 gap-5">
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 space-y-5">
             <LiveActivityFeed />
+            <OrderTrackingWidget compact />
           </div>
-          <div>
+          <div className="space-y-5">
+            <WeatherWidget region="Madurai, TN" />
             <RoleSwitcher />
           </div>
         </div>

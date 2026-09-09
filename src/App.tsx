@@ -12,6 +12,14 @@ import Home from './pages/Home';
 
 const MarketplacePage = lazy(() => import('./pages/MarketplacePage'));
 const CartPage = lazy(() => import('./pages/CartPage'));
+const WishlistPage = lazy(() => import('./pages/WishlistPage'));
+const NegotiationsPage = lazy(() => import('./pages/NegotiationsPage'));
+const OrderTrackingPage = lazy(() => import('./pages/TrackingPage'));
+const SubscriptionPage = lazy(() => import('./pages/SubscriptionPage'));
+const GovSchemesPage = lazy(() => import('./pages/GovSchemesPage'));
+const FarmInventoryPage = lazy(() => import('./pages/FarmInventoryPage'));
+const RevenueAnalyticsPage = lazy(() => import('./pages/RevenueAnalyticsPage'));
+const DisputePage = lazy(() => import('./pages/DisputePage'));
 const RegistrationPage = lazy(() => import('./pages/RegistrationPage'));
 const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage'));
 const SettingsPage = lazy(() => import('./pages/SettingsPage'));
@@ -49,6 +57,14 @@ function BrowserRouterWrapper() {
               <Route path="/" element={<Home />} />
               <Route path="/marketplace" element={<MarketplacePage />} />
               <Route path="/cart" element={<CartPage />} />
+              <Route path="/wishlist" element={<WishlistPage />} />
+              <Route path="/negotiations" element={<NegotiationsPage />} />
+              <Route path="/tracking" element={<OrderTrackingPage />} />
+              <Route path="/subscriptions" element={<SubscriptionPage />} />
+              <Route path="/schemes" element={<GovSchemesPage />} />
+              <Route path="/inventory" element={<FarmInventoryPage />} />
+              <Route path="/revenue" element={<RevenueAnalyticsPage />} />
+              <Route path="/disputes" element={<DisputePage />} />
               <Route path="/registration" element={<RegistrationPage />} />
               <Route path="/analytics" element={<AnalyticsPage />} />
               <Route path="/settings" element={<SettingsPage />} />
