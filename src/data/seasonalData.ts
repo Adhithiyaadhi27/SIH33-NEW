@@ -55,6 +55,7 @@ export const PRODUCT_SEASONS: Record<string, Season> = {
   prod_brinjal: 'summer',
   prod_carrot: 'winter',
   prod_mango: 'summer',
+  prod_orange: 'winter',
 };
 
 export function getProductSeason(productId: string): SeasonInfo {

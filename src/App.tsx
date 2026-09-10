@@ -24,6 +24,7 @@ const RegistrationPage = lazy(() => import('./pages/RegistrationPage'));
 const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage'));
 const SettingsPage = lazy(() => import('./pages/SettingsPage'));
 const { FarmerPage, GenericRolePage } = { FarmerPage: lazy(() => import('./pages/RolePages').then((m) => ({ default: m.FarmerPage }))), GenericRolePage: lazy(() => import('./pages/RolePages').then((m) => ({ default: m.GenericRolePage }))) };
+const LogisticsPage = lazy(() => import('./pages/LogisticsPage'));
 
 const queryClient = new QueryClient();
 
@@ -47,7 +48,7 @@ function BrowserRouterWrapper() {
   useI18nInit();
   return (
     <Router>
-      <div className="min-h-screen flex flex-col bg-soil-base font-sans">
+      <div className="min-h-screen flex flex-col font-sans">
         <Navbar />
         <ToastContainer />
 
@@ -72,7 +73,7 @@ function BrowserRouterWrapper() {
               <Route path="/fpo" element={<GenericRolePage role="FPO" tagline="Farmer aggregation, batch pooling, inventory & demand" />} />
               <Route path="/consumer" element={<GenericRolePage role="Consumer" tagline="Marketplace discovery, cart, orders & delivery tracking" />} />
               <Route path="/bulk-buyer" element={<GenericRolePage role="Bulk Buyer" tagline="Bulk marketplace, RFPs, supplier comparison & contracts" />} />
-              <Route path="/logistics" element={<GenericRolePage role="Logistics" tagline="Active deliveries, route optimization & vehicle telemetry" />} />
+              <Route path="/logistics" element={<LogisticsPage />} />
               <Route path="/admin" element={<GenericRolePage role="Admin" tagline="User management, verification, analytics & settings" />} />
               <Route path="/orders" element={<GenericRolePage role="Consumer" tagline="Your live produce orders" />} />
 

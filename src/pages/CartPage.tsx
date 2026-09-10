@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useMarketplaceStore } from '../store/marketplaceStore';
+import { useOrderTrackingStore, type TrackedOrder } from '../store/orderTrackingStore';
 import { GlassCard, GlassButton } from '../components/ui/primitives';
 import { Trash2, ShoppingBag, ArrowDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -12,6 +13,7 @@ import LoyaltyWidget from '../components/loyalty/LoyaltyWidget';
 export default function CartPage() {
   const { t } = useTranslation();
   const { cart, removeFromCart, updateQuantity, clearCart, totalItems, totalValue } = useMarketplaceStore();
+  const addOrder = useOrderTrackingStore((s) => s.addOrder);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [checkoutItems, setCheckoutItems] = useState<CheckoutItem[]>([]);
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
@@ -32,7 +34,34 @@ export default function CartPage() {
     setCheckoutOpen(true);
   };
 
-  const handlePaid = () => {
+  const handlePaid = (order: Record<string, unknown>) => {
+    const first = cart[0];
+    if (order?.id) {
+      const tracked: TrackedOrder = {
+        id: String(order.id),
+        productName: first ? `${first.name}${cart.length > 1 ? ` +${cart.length - 1} more` : ''}` : 'Produce order',
+        productImage: first?.image ?? '',
+        status: 'confirmed',
+        currentLat: 13.0827,
+        currentLng: 80.2707,
+        destinationLat: 13.0827,
+        destinationLng: 80.2707,
+        driverName: 'Carrier assigned at dispatch',
+        driverPhone: '',
+        vehicleNo: '—',
+        eta: 'Scheduled',
+        events: [
+          {
+            time: new Date().toLocaleString([], { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }),
+            location: 'Consumer pickup — Main Market, Chennai',
+            status: 'Order Confirmed',
+            lat: 13.0827,
+            lng: 80.2707,
+          },
+        ],
+      };
+      addOrder(tracked);
+    }
     clearCart();
     setCheckoutOpen(false);
     setSelectedSlot(null);

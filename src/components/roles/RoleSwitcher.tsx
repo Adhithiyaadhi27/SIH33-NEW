@@ -4,7 +4,7 @@ import { GlassCard } from '../ui/primitives';
 import { useRoleStore, type RoleName } from '../../store/roleStore';
 import useTranslation from '../../services/useTranslation';
 
-const roles: RoleName[] = ['Farmer', 'FPO', 'Consumer', 'Bulk Buyer', 'Admin'];
+const roles: RoleName[] = ['Farmer', 'FPO', 'Consumer', 'Bulk Buyer', 'Logistics', 'Admin'];
 
 const roleLabelKey: Record<RoleName, string> = {
   Farmer: 'navbar.farmer',

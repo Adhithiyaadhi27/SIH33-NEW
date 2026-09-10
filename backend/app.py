@@ -23,11 +23,15 @@ from flask_cors import CORS
 from mock_data import (
     USERS, PRODUCTS, BUYER_REQUIREMENTS, PRODUCE_PASSPORTS,
     DEMAND_PREDICTIONS, WASTE_AND_ANOMALIES, SUPPLIER_RELIABILITY_SCORES,
-    ORDERS, LOGISTICS_ASSIGNMENTS, SUPPORT_TICKETS, NOTIFICATIONS
+    ORDERS, LOGISTICS_ASSIGNMENTS, SUPPORT_TICKETS, NOTIFICATIONS,
+    PRODUCE_DEPOTS, CORRIDORS, REROUTE_PROPOSALS
 )
 from ai_engine import AgriAIEngine
 from translations import get_translations, SUPPORTED_LANGUAGES, LANGUAGE_NAMES
-from socketio_handler import socketio, start_background_emitter, price_state, stock_state
+from socketio_handler import (
+    socketio, start_background_emitter, price_state, stock_state, FLASH_DEALS,
+    seed_flash_deals_from_proposals, flash_price, clear_flash_deal, emit_reroute_update
+)
 
 app = Flask(__name__)
 
@@ -104,7 +108,7 @@ def internal_error(error):
 def health_check():
     return jsonify({
         "status": "healthy",
-        "app": "AgriDirect AI Platform",
+        "app": "Mann Vassam - AgriDirect AI Platform",
         "timestamp": datetime.now().isoformat(),
         "version": "2.4.0",
         "aiEngineStatus": "ONLINE",
@@ -214,7 +218,33 @@ def get_products():
     if grade:
         results = [p for p in results if p["grade"].lower() == grade.lower()]
 
+    # Apply flash-discount pricing for perishable stock under reroute
+    flash_results = []
+    for p in results:
+        original = p.get("price", 0)
+        deal = flash_price(p.get("id", ""), original)
+        if deal != original:
+            flash_results.append({**p, "price": deal, "flashDeal": _flash_meta(p.get("id", ""), original, deal)})
+        else:
+            flash_results.append(p)
+    results = flash_results
+
     return jsonify({"success": True, "count": len(results), "products": results})
+
+
+def _flash_meta(pid, original, deal):
+    """Attach flash-deal metadata when a discount is active for a product."""
+    active = FLASH_DEALS.get(pid)
+    if not active:
+        return None
+    return {
+        "originalPrice": original,
+        "price": deal,
+        "discountPct": active.get("discountPct", 0),
+        "reason": active.get("reason", ""),
+        "depot": active.get("depot", ""),
+        "expiresIn": active.get("expiresIn", ""),
+    }
 
 
 @app.route("/api/products/<product_id>", methods=["GET"])
@@ -222,6 +252,10 @@ def get_product_detail(product_id):
     product = next((p for p in PRODUCTS if p["id"] == product_id), None)
     if not product:
         return jsonify({"success": False, "error": "Product not found"}), 404
+    original = product.get("price", 0)
+    deal = flash_price(product_id, original)
+    if deal != original:
+        product = {**product, "price": deal, "flashDeal": _flash_meta(product_id, original, deal)}
     return jsonify({"success": True, "product": product})
 
 
@@ -383,7 +417,8 @@ def get_analytics_forecast():
         "forecastData": DEMAND_PREDICTIONS[0]["historicalTrend"] if DEMAND_PREDICTIONS else [],
         "metrics": {
             "currentDemand": 3500,
-            "shortage": 1800,
+            "availableSupply": 3200,
+            "shortage": 300,
             "confidence": 92.4,
         },
         "districtData": [
@@ -680,6 +715,149 @@ def get_logistics():
     return jsonify({"success": True, "assignments": LOGISTICS_ASSIGNMENTS})
 
 
+def _corridor_with_utilization(corr):
+    available = max(0, corr["capacityKg"] - corr.get("reservedKg", 0))
+    utilization = round(corr.get("reservedKg", 0) / corr["capacityKg"] * 100, 1) if corr["capacityKg"] else 0
+    status = "critical" if available < corr["capacityKg"] * 0.3 else ("low" if available < corr["capacityKg"] * 0.6 else "available")
+    return {**corr, "availableKg": available, "utilizationPct": utilization, "status": status}
+
+
+@app.route("/api/logistics/capacity", methods=["GET"])
+def get_logistics_capacity():
+    return jsonify({"success": True, "corridors": [_corridor_with_utilization(c) for c in CORRIDORS]})
+
+
+@app.route("/api/logistics/reroutes", methods=["GET"])
+def get_reroute_proposals():
+    enriched = []
+    for p in REROUTE_PROPOSALS:
+        corridor = _corridor_with_utilization(next((c for c in CORRIDORS if c["id"] == p.get("suggestedCorridorId")), {}))
+        enriched.append({**p, "suggestedCorridor": corridor if corridor.get("id") else None})
+    return jsonify({"success": True, "proposals": enriched})
+
+
+@app.route("/api/logistics/reroutes/<proposal_id>/accept", methods=["POST"])
+def accept_reroute(proposal_id):
+    """Bind a truck on the suggested corridor, open a tracked re-route order,
+    clear the market flash discount, and notify both parties."""
+    proposal = next((p for p in REROUTE_PROPOSALS if p["id"] == proposal_id), None)
+    if not proposal:
+        return jsonify({"success": False, "error": "Reroute proposal not found"}), 404
+    if proposal["status"] != "PENDING":
+        return jsonify({"success": False, "error": "Proposal already handled"}), 400
+
+    corridor = next((c for c in CORRIDORS if c["id"] == proposal.get("suggestedCorridorId")), None)
+    if not corridor:
+        return jsonify({"success": False, "error": "No corridor available for this proposal"}), 400
+
+    qty = int(proposal["quantityKg"])
+    corridor["reservedKg"] = corridor.get("reservedKg", 0) + qty
+    proposal["status"] = "ACCEPTED"
+    proposal["acceptedAt"] = datetime.now().strftime("%Y-%m-%d %I:%M %p")
+
+    assignment_id = f"LOG-ASG-{uuid.uuid4().hex[:4].upper()}"
+    order_id = f"ORD-2026-RR{uuid.uuid4().hex[:4].upper()}"
+    now_ts = datetime.now()
+    vehicle_label = corridor["vehicle"]
+    driver = _corridor_driver(corridor)
+
+    assignment = {
+        "assignmentId": assignment_id,
+        "proposalId": proposal_id,
+        "orderId": order_id,
+        "product": proposal["product"],
+        "productId": proposal["productId"],
+        "depot": proposal["depotName"],
+        "quantityKg": qty,
+        "from": corridor["from"],
+        "to": corridor["to"],
+        "vehicle": vehicle_label,
+        "driverName": driver["name"],
+        "driverPhone": driver["phone"],
+        "transitHours": corridor["transitHours"],
+        "status": "IN_TRANSIT",
+        "acceptedAt": proposal["acceptedAt"],
+        "earnings": round(max(500, qty * 1.2), 2),
+    }
+
+    order = {
+        "id": order_id,
+        "userId": "usr_logistics_1",
+        "customerName": proposal["depotName"] + " (Emergency Redirection)",
+        "mode": "Cold-Chain Reroute",
+        "items": [{
+            "productId": proposal["productId"],
+            "name": proposal["product"],
+            "quantity": qty,
+            "unit": "kg",
+            "price": proposal.get("discountedPrice", 0),
+            "batchId": proposal["batchId"],
+        }],
+        "subtotal": round(qty * proposal.get("discountedPrice", 0), 2),
+        "deliveryFee": 0,
+        "total": round(qty * proposal.get("discountedPrice", 0), 2),
+        "paymentStatus": "SYSTEM_REROUTE",
+        "orderStatus": "IN_TRANSIT",
+        "createdAt": now_ts.strftime("%Y-%m-%d %I:%M %p"),
+        "estimatedDelivery": f"Within {corridor['transitHours']} hrs",
+        "logisticsPartner": corridor["partner"],
+        "trackingNumber": f"RR-{assignment_id}",
+        "timeline": [
+            {"status": "PENDING", "time": proposal["createdAt"], "completed": True},
+            {"status": "CONFIRMED", "time": proposal["acceptedAt"], "completed": True},
+            {"status": "PROCESSING", "time": proposal["acceptedAt"], "completed": True},
+            {"status": "PICKED_UP", "time": "Loading now", "completed": True},
+            {"status": f"RE-ROUTED → {corridor['to']}", "time": "In transit", "completed": True},
+            {"status": "DELIVERED", "time": "Planned", "completed": False},
+        ],
+    }
+
+    ORDERS.insert(0, order)
+    LOGISTICS_ASSIGNMENTS.insert(0, assignment)
+
+    # Clear the marketplace flash deal now that the produce has a dispatch plan
+    clear_flash_deal(proposal["productId"])
+
+    NOTIFICATIONS.insert(0, {
+        "id": f"notif_rr_{uuid.uuid4().hex[:6]}",
+        "role": "Logistics Partner",
+        "type": "REROUTE_ACCEPTED",
+        "title": "🚚 Re-route Dispatch Bound",
+        "message": f"{qty} kg {proposal['product']} from {proposal['depotName']} is in transit to {corridor['to']} via {vehicle_label} ({order_id}).",
+        "time": "Just now",
+        "read": False,
+    })
+
+    try:
+        emit_reroute_update({
+            "proposalId": proposal_id,
+            "orderId": order_id,
+            "assignmentId": assignment_id,
+            "productId": proposal["productId"],
+            "status": "ACCEPTED",
+            "corridorId": corridor["id"],
+        })
+    except Exception:
+        pass
+
+    return jsonify({
+        "success": True,
+        "proposal": proposal,
+        "assignment": assignment,
+        "order": order,
+    }), 201
+
+
+def _corridor_driver(corridor):
+    pool = {
+        "cor_salem_chn": {"name": "G. Vinoth", "phone": "+91 90031 22114"},
+        "cor_cbe_chn": {"name": "S. Balaji", "phone": "+91 99445 61820"},
+        "cor_salem_mdu": {"name": "R. Kavitha", "phone": "+91 97871 48230"},
+        "cor_cbe_blr": {"name": "P. Nagarajan", "phone": "+91 88843 99012"},
+    }
+    return pool.get(corridor.get("id"), {"name": "Depot Driver", "phone": "+91 90000 00000"})
+
+
 @app.route("/api/support", methods=["GET", "POST"])
 def handle_support():
     if request.method == "POST":
@@ -722,5 +900,7 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     print(f"[AgriDirect AI] Backend running on http://localhost:{port}")
     print(f"[AgriDirect AI] Socket.IO realtime enabled")
+    # Activate flash discounts for pending perishable-produce reroutes
+    seed_flash_deals_from_proposals(REROUTE_PROPOSALS)
     start_background_emitter()
     socketio.run(app, host="0.0.0.0", port=port, debug=True)

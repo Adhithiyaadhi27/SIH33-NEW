@@ -15,11 +15,11 @@ interface PassportData {
 }
 
 const defaultPassport: PassportData = {
-  traceId: 'TRB2023001',
+  traceId: 'AGR-2026-1024',
   lot: 'Tomato Lot',
   verified: true,
   harvest: 'Tomato',
-  date: '23-Jul → 09-Sep 2023',
+  date: '23-Aug → 09-Sep 2026',
   timeline: [
     { step: 'Harvest lot', active: true },
     { step: 'Transit', active: true },
@@ -83,7 +83,7 @@ export default function ProducePassport() {
   }, []);
 
   useEffect(() => {
-    QRCode.toDataURL(`https://mannvassam.example/passport/${passport.traceId}`, { width: 160, margin: 1, color: { dark: '#EAF6EE', light: '#0B2B1E' } })
+    QRCode.toDataURL(`${window.location.origin}/passport/${passport.traceId}`, { width: 160, margin: 1, color: { dark: '#EAF6EE', light: '#0B2B1E' } })
       .then(setQr)
       .catch(() => setQr(null));
   }, [passport.traceId]);
