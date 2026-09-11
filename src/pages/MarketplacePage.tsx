@@ -14,7 +14,7 @@ export default function MarketplacePage() {
               Fresh Produce, Real-Time Pricing
             </h1>
             <p className="text-sm text-text-muted max-w-2xl mx-auto">
-              Sample product listings from verified FPOs with live pricing and digital farm passports.
+              Fresh vegetables and fruits straight from verified farmer partners.
             </p>
           </div>
         </FadeIn>

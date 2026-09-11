@@ -3,10 +3,12 @@ import { LayoutGrid, List, Search, Filter, Loader2, Radio } from 'lucide-react';
 import { GlassCard } from '../ui/primitives';
 import { mockProducts, type MockProduct } from '../../data/mockProducts';
 import { useRealtime, useRealtimeStatus } from '../../services/realtime';
+import { useFlashDealStore, applyFlashUpdate } from '../../store/flashDealStore';
 import api from '../../services/api';
 import ProductCard from './ProductCard';
 
 const CATEGORIES = ['All', 'Vegetables', 'Fruits'];
+const ALLOWED_CATEGORIES = new Set(['Vegetables', 'Fruits']);
 
 const FEED_STATUS_TEXT: Record<string, string> = {
   live: 'Live',
@@ -14,10 +16,19 @@ const FEED_STATUS_TEXT: Record<string, string> = {
   connecting: 'Connecting',
 };
 
+function cleanProductName(raw: string): string {
+  return raw
+    .split(/[()]/)
+    .filter((part, i) => i % 2 === 0 || /^[\x20-\x7E]*$/.test(part))
+    .join('')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
+
 function toMockProduct(p: Record<string, unknown>): MockProduct {
   return {
     id: String(p.id ?? ''),
-    name: String(p.name ?? ''),
+    name: cleanProductName(String(p.name ?? '')),
     category: String(p.category ?? 'Vegetables'),
     price: Number(p.price ?? 0),
     unit: String(p.unit ?? 'kg'),
@@ -36,6 +47,7 @@ function toMockProduct(p: Record<string, unknown>): MockProduct {
 
 export default function Marketplace() {
   const feedStatus = useRealtimeStatus();
+  const deals = useFlashDealStore((s) => s.deals);
   const [view, setView] = useState<'grid' | 'list'>('grid');
   const [category, setCategory] = useState('All');
   const [query, setQuery] = useState('');
@@ -68,8 +80,12 @@ export default function Marketplace() {
   useRealtime('stock:update', ({ productId, availableQty }) => {
     setProducts((prev) => prev.map((p) => (p.id === productId ? { ...p, availableQty } : p)));
   });
+  useRealtime('flash:update', (payload) => {
+    applyFlashUpdate(payload);
+  });
 
   const filtered = products.filter((p) => {
+    if (!ALLOWED_CATEGORIES.has(p.category)) return false;
     const okCat = category === 'All' || p.category === category;
     const okQuery = !query || p.name.toLowerCase().includes(query.toLowerCase()) || p.location.toLowerCase().includes(query.toLowerCase());
     return okCat && okQuery;
@@ -101,7 +117,7 @@ export default function Marketplace() {
               {FEED_STATUS_TEXT[feedStatus] ?? 'Connecting'}
             </span>
           </div>
-          <p className="text-xs text-text-muted mt-0.5">Verified FPO products with live pricing and digital farm passports</p>
+          <p className="text-xs text-text-muted mt-0.5">Verified vegetables and fruits with live pricing</p>
         </div>
 
         <div className="flex items-center gap-2">
@@ -163,7 +179,7 @@ export default function Marketplace() {
       ) : view === 'grid' ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {filtered.map((p) => (
-            <ProductCard key={p.id} product={p} allProducts={products} />
+            <ProductCard key={p.id} product={p} />
           ))}
         </div>
       ) : (
@@ -176,7 +192,17 @@ export default function Marketplace() {
                 <div className="text-[11px] text-text-muted">{p.location} · {p.supplier} · {p.grade}</div>
               </div>
               <div className="text-right shrink-0">
-                <div className="font-extrabold text-soil-gold">₹{p.price.toFixed(2)}/<span className="text-xs">{p.unit}</span></div>
+                {deals[p.id] ? (
+                  <div>
+                    <div className="flex items-center gap-1.5 justify-end">
+                      <span className="line-through text-[10px] text-text-muted">₹{deals[p.id].originalPrice.toFixed(2)}</span>
+                      <span className="font-extrabold text-red-300">₹{deals[p.id].price.toFixed(2)}</span>
+                    </div>
+                    <span className="text-[9px] font-bold text-red-300">FLASH {deals[p.id].discountPct}% OFF</span>
+                  </div>
+                ) : (
+                  <div className="font-extrabold text-soil-gold">₹{p.price.toFixed(2)}/<span className="text-xs">{p.unit}</span></div>
+                )}
                 <div className={`text-[10px] ${p.availableQty === 0 ? 'text-red-400 font-bold' : 'text-text-muted'}`}>
                   {p.availableQty === 0 ? 'Out of Stock' : `${p.availableQty} kg available`}
                 </div>

@@ -67,9 +67,16 @@ const MOCK_ORDERS: TrackedOrder[] = [
 interface OrderTrackingState {
   orders: TrackedOrder[];
   getOrder: (id: string) => TrackedOrder | undefined;
+  addOrder: (order: TrackedOrder) => void;
+  updateStatus: (id: string, status: TrackedOrder['status']) => void;
 }
 
 export const useOrderTrackingStore = create<OrderTrackingState>((set, get) => ({
   orders: MOCK_ORDERS,
   getOrder: (id) => get().orders.find((o) => o.id === id),
+  addOrder: (order) => set((state) => ({ orders: [order, ...state.orders] })),
+  updateStatus: (id, status) =>
+    set((state) => ({
+      orders: state.orders.map((o) => (o.id === id ? { ...o, status } : o)),
+    })),
 }));

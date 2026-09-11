@@ -12,6 +12,24 @@ export interface RealtimeEventMap {
   'route:update': { routeId: string; longitude: number; latitude: number };
   'heatmap:update': { district: string; level: 'high' | 'medium' | 'low' | 'normal' };
   'grade:update': { sampleId: string; grade: 'GRADE A' | 'GRADE B' | 'GRADE C'; ripeness: number };
+  'flash:update': {
+    productId: string;
+    flash: boolean;
+    originalPrice?: number;
+    price?: number;
+    discountPct?: number;
+    reason?: string;
+    depot?: string;
+    expiresIn?: string;
+  };
+  'logistics:reroute': {
+    proposalId: string;
+    orderId: string;
+    assignmentId: string;
+    productId: string;
+    status: 'ACCEPTED';
+    corridorId: string;
+  };
 }
 
 /**

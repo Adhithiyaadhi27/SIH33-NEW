@@ -50,7 +50,7 @@ export default function AnalyticsPage() {
   const { t } = useTranslation();
   const [forecastData, setForecastData] = useState<ForecastPoint[]>(FALLBACK_FORECAST);
   const [districtData, setDistrictData] = useState<DistrictPoint[]>(FALLBACK_DISTRICT);
-  const [metrics, setMetrics] = useState({ currentDemand: 3500, availableSupply: 3200, shortage: 1800, confidence: 92.4 });
+  const [metrics, setMetrics] = useState({ currentDemand: 3500, availableSupply: 3200, shortage: 300, confidence: 92.4 });
 
   useEffect(() => {
     let cancelled = false;
@@ -64,12 +64,14 @@ export default function AnalyticsPage() {
         }
         const m = res.data.metrics ?? {};
         if (res.data.districtData?.length) setDistrictData(res.data.districtData);
-        if (typeof m.currentDemand === 'number' || typeof m.shortage === 'number' || typeof m.confidence === 'number') {
-          const last = trend[trend.length - 1];
+        if (typeof m.currentDemand === 'number' || typeof m.availableSupply === 'number' || typeof m.shortage === 'number' || typeof m.confidence === 'number') {
+          const demand = typeof m.currentDemand === 'number' ? m.currentDemand : 3500;
+          const supply = typeof m.availableSupply === 'number' ? m.availableSupply : 3200;
+          const shortage = typeof m.shortage === 'number' ? m.shortage : Math.max(0, demand - supply);
           setMetrics({
-            currentDemand: typeof m.currentDemand === 'number' ? m.currentDemand : 3500,
-            availableSupply: typeof m.availableSupply === 'number' ? m.availableSupply : last?.supply ?? 3200,
-            shortage: typeof m.shortage === 'number' ? m.shortage : 1800,
+            currentDemand: demand,
+            availableSupply: supply,
+            shortage,
             confidence: typeof m.confidence === 'number' ? m.confidence : 92.4,
           });
         }

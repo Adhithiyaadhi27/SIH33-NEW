@@ -67,7 +67,7 @@ PRODUCTS = [
         "id": "prod_tomato",
         "name": "Heritage Country Tomato (நாட்டு தக்காளி)",
         "category": "Vegetables",
-        "price": 25,
+        "price": 30,
         "unit": "kg",
         "availableQty": 500,
         "minBulkQty": 50,
@@ -92,7 +92,7 @@ PRODUCTS = [
         "id": "prod_potato",
         "name": "Ooty Table Potato (நீலகிரி உருளைக்கிழங்கு)",
         "category": "Vegetables",
-        "price": 30,
+        "price": 28,
         "unit": "kg",
         "availableQty": 1200,
         "minBulkQty": 100,
@@ -117,7 +117,7 @@ PRODUCTS = [
         "id": "prod_onion",
         "name": "Nashik Red Onion (नाशिक लाल कांदा)",
         "category": "Vegetables",
-        "price": 28,
+        "price": 32,
         "unit": "kg",
         "availableQty": 2500,
         "minBulkQty": 150,
@@ -242,9 +242,9 @@ PRODUCTS = [
         "id": "prod_rice",
         "name": "Karnal Aged 1121 Basmati Rice",
         "category": "Grains",
-        "price": 85,
+        "price": 46.5,
         "unit": "kg",
-        "availableQty": 4000,
+        "availableQty": 3100,
         "minBulkQty": 200,
         "bulkPrice": 78,
         "grade": "Grade A",
@@ -267,9 +267,9 @@ PRODUCTS = [
         "id": "prod_dal",
         "name": "Latur Desi Toor Dal (तुवर डाळ)",
         "category": "Pulses",
-        "price": 130,
+        "price": 92,
         "unit": "kg",
-        "availableQty": 1800,
+        "availableQty": 2200,
         "minBulkQty": 100,
         "bulkPrice": 120,
         "grade": "Grade A",
@@ -317,9 +317,9 @@ PRODUCTS = [
         "id": "prod_orange",
         "name": "Nagpur Mandarin Oranges (नागपूर संत्री)",
         "category": "Fruits",
-        "price": 55,
+        "price": 74,
         "unit": "kg",
-        "availableQty": 1500,
+        "availableQty": 950,
         "minBulkQty": 100,
         "bulkPrice": 48,
         "grade": "Grade A",
@@ -342,9 +342,9 @@ PRODUCTS = [
         "id": "prod_turmeric",
         "name": "Erode Organic Alleppey Finger Turmeric",
         "category": "Spices",
-        "price": 165,
+        "price": 430,
         "unit": "kg",
-        "availableQty": 900,
+        "availableQty": 380,
         "minBulkQty": 50,
         "bulkPrice": 150,
         "grade": "Grade A",
@@ -820,6 +820,140 @@ LOGISTICS_ASSIGNMENTS = [
         "status": "READY_FOR_PICKUP",
         "earnings": 8500,
         "proofOfDelivery": None
+    }
+]
+
+# Realtime cold-chain reroute engine — at-risk depot inventory & corridor capacity.
+# Drives the dynamic flash-discount + redirection feature on the marketplace &
+# logistics dashboards (see /api/logistics/reroutes, /api/logistics/capacity).
+PRODUCE_DEPOTS = [
+    {
+        "depotId": "DEP-SLM-01",
+        "name": "Salem Secondary Depot",
+        "city": "Salem",
+        "lat": 11.6643,
+        "lng": 78.1460,
+        "productId": "prod_tomato",
+        "product": "Tomato",
+        "batchId": "AGR-2026-0980",
+        "quantityKg": 2000,
+        "stockAgeDays": 6,
+        "shelfLifeRemainingDays": 2,
+        "salesVelocityKgPerDay": 120,
+        "wasteRisk": "HIGH",
+        "projectedLossInr": 48000,
+        "basePrice": 30.0,
+        "flashDiscountPct": 25
+    },
+    {
+        "depotId": "DEP-CBE-02",
+        "name": "Coimbatore Packhouse",
+        "city": "Coimbatore",
+        "lat": 11.0168,
+        "lng": 76.9558,
+        "productId": "prod_beans",
+        "product": "Green Beans",
+        "batchId": "AGR-2026-1055",
+        "quantityKg": 450,
+        "stockAgeDays": 2,
+        "shelfLifeRemainingDays": 1,
+        "salesVelocityKgPerDay": 180,
+        "wasteRisk": "HIGH",
+        "projectedLossInr": 13500,
+        "basePrice": 23.5,
+        "flashDiscountPct": 30
+    }
+]
+
+CORRIDORS = [
+    {
+        "id": "cor_salem_chn",
+        "from": "Salem",
+        "to": "Chennai Cold Hub",
+        "fromLat": 11.6643, "fromLng": 78.1460,
+        "toLat": 13.0827, "toLng": 80.2707,
+        "vehicle": "6-Ton Reefer Tata Ace",
+        "partner": "Veloce Cold Chain",
+        "transitHours": 7,
+        "capacityKg": 4500,
+        "reservedKg": 0
+    },
+    {
+        "id": "cor_cbe_chn",
+        "from": "Coimbatore",
+        "to": "Chennai Cold Hub",
+        "fromLat": 11.0168, "fromLng": 76.9558,
+        "toLat": 13.0827, "toLng": 80.2707,
+        "vehicle": "3-Ton Reefer Mahindra Supro",
+        "partner": "SwiftKargo Refrigerated Express",
+        "transitHours": 9,
+        "capacityKg": 2600,
+        "reservedKg": 0
+    },
+    {
+        "id": "cor_salem_mdu",
+        "from": "Salem",
+        "to": "Madurai Redistribution Hub",
+        "fromLat": 11.6643, "fromLng": 78.1460,
+        "toLat": 9.9252, "toLng": 78.1198,
+        "vehicle": "5-Ton Reefer Eicher Pro 3005",
+        "partner": "Tamil Nadu Agro Logistics Corp",
+        "transitHours": 4,
+        "capacityKg": 3800,
+        "reservedKg": 0
+    },
+    {
+        "id": "cor_cbe_blr",
+        "from": "Coimbatore",
+        "to": "Bengaluru Fruit Terminal",
+        "fromLat": 11.0168, "fromLng": 76.9558,
+        "toLat": 12.9716, "toLng": 77.5946,
+        "vehicle": "12-Ton Reefer Ashok Leyland",
+        "partner": "Sahyadri Logistics Digital Bus",
+        "transitHours": 6,
+        "capacityKg": 7200,
+        "reservedKg": 0
+    }
+]
+
+REROUTE_PROPOSALS = [
+    {
+        "id": "RRP-2026-001",
+        "depotId": "DEP-SLM-01",
+        "depotName": "Salem Secondary Depot",
+        "city": "Salem",
+        "productId": "prod_tomato",
+        "product": "Tomato",
+        "batchId": "AGR-2026-0980",
+        "quantityKg": 2000,
+        "shelfLifeRemainingDays": 2,
+        "wasteRisk": "HIGH",
+        "projectedLossInr": 48000,
+        "flashDiscountPct": 25,
+        "originalPrice": 30.0,
+        "discountedPrice": 22.5,
+        "suggestedCorridorId": "cor_salem_chn",
+        "status": "PENDING",
+        "createdAt": "2026-09-10 08:00 AM"
+    },
+    {
+        "id": "RRP-2026-002",
+        "depotId": "DEP-CBE-02",
+        "depotName": "Coimbatore Packhouse",
+        "city": "Coimbatore",
+        "productId": "prod_beans",
+        "product": "Green Beans",
+        "batchId": "AGR-2026-1055",
+        "quantityKg": 450,
+        "shelfLifeRemainingDays": 1,
+        "wasteRisk": "HIGH",
+        "projectedLossInr": 13500,
+        "flashDiscountPct": 30,
+        "originalPrice": 23.5,
+        "discountedPrice": 16.45,
+        "suggestedCorridorId": "cor_cbe_chn",
+        "status": "PENDING",
+        "createdAt": "2026-09-10 07:30 AM"
     }
 ]
 

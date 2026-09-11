@@ -66,6 +66,54 @@ harvest_total = 5000
 transit_total = 1793
 delivery_total = 1753
 
+# Active flash discounts driven by the cold-chain reroute engine.
+# pid -> {"productId", "originalPrice", "price", "discountPct", "reason",
+#         "depot", "expiresIn"}
+FLASH_DEALS: dict = {}
+
+
+def set_flash_deal(product_id: str, deal: dict):
+    """Activate a flash discount for a product and broadcast it in realtime."""
+    payload = dict(deal)
+    payload["productId"] = product_id
+    payload["flash"] = True
+    FLASH_DEALS[product_id] = payload
+    socketio.emit("flash:update", payload)
+
+
+def clear_flash_deal(product_id: str):
+    """Remove a flash discount and broadcast the clearance."""
+    if product_id in FLASH_DEALS:
+        del FLASH_DEALS[product_id]
+        socketio.emit("flash:update", {"productId": product_id, "flash": False})
+
+
+def flash_price(pid: str, base: float) -> float:
+    """Return the flash-discounted price if a deal is active, else the base price."""
+    deal = FLASH_DEALS.get(pid)
+    if deal:
+        return float(deal.get("price", base))
+    return float(base)
+
+
+def seed_flash_deals_from_proposals(proposals):
+    """Activate flash deals for every pending reroute proposal (startup)."""
+    for p in proposals:
+        if p.get("status") != "PENDING":
+            continue
+        set_flash_deal(p["productId"], {
+            "originalPrice": p.get("originalPrice", 0),
+            "price": p.get("discountedPrice", p.get("originalPrice", 0)),
+            "discountPct": p.get("flashDiscountPct", 0),
+            "reason": f"{p['depotName']}: {p['quantityKg']} kg {p['product']} near shelf-life — flash redirect deal",
+            "depot": p["depotName"],
+            "expiresIn": f"{int(p.get('shelfLifeRemainingDays', 1) * 24)}h",
+        })
+
+
+def emit_reroute_update(payload):
+    socketio.emit("logistics:reroute", payload)
+
 
 def _drift_price(pid):
     """Apply realistic ±2-5% drift to a product price."""
@@ -128,6 +176,10 @@ def _background_emitter():
                 "latitude": 9.9252 + random.uniform(0, 3.0),
             })
 
+        # Keep active flash-deal snapshot fresh for any client that just joined
+        for _pid, deal in list(FLASH_DEALS.items()):
+            socketio.emit("flash:update", dict(deal))
+
 
 def start_background_emitter():
     """Start the background price emitter (call after socketio is initialized)."""
@@ -142,6 +194,10 @@ def handle_connect():
     for pid in PRODUCT_IDS:
         emit("price:update", {"productId": pid, "price": price_state[pid]})
         emit("stock:update", {"productId": pid, "availableQty": stock_state[pid]})
+
+    # Send active flash-deal snapshot (perishable produce redirect engine)
+    for _pid, deal in list(FLASH_DEALS.items()):
+        emit("flash:update", dict(deal))
 
 
 @socketio.on("disconnect")
