@@ -36,7 +36,7 @@ const nodeById = Object.fromEntries(nodes.map((n) => [n.id, n]));
 
 export default function AggregationMap() {
   return (
-    <div className="relative rounded-2xl overflow-hidden border border-white/10 bg-soil-forest/40 h-[420px]">
+    <div className="relative rounded-2xl overflow-hidden border border-white/10 bg-soil-forest/40 h-[300px]">
       <MapContainer
         center={[11.5, 78.5]}
         zoom={7}
@@ -45,8 +45,8 @@ export default function AggregationMap() {
         className="z-0"
       >
         <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-          attribution='&copy; OpenStreetMap &copy; CARTO'
+          url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; OpenStreetMap'
         />
 
         {/* Routes (animated dashed lines) */}

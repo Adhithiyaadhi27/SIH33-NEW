@@ -10,10 +10,9 @@ import useTranslation from '../services/useTranslation';
 import RegistrationModal from './registration/RegistrationModal';
 import LanguageToggle from './LanguageToggle';
 
-const roles: RoleName[] = ['Farmer', 'FPO', 'Consumer', 'Bulk Buyer', 'Logistics', 'Admin'];
+const roles: RoleName[] = ['FPO', 'Consumer', 'Bulk Buyer', 'Logistics', 'Admin'];
 
 const roleRoute: Record<RoleName, string> = {
-  Farmer: '/farmer',
   FPO: '/fpo',
   Consumer: '/consumer',
   'Bulk Buyer': '/bulk-buyer',
@@ -22,7 +21,6 @@ const roleRoute: Record<RoleName, string> = {
 };
 
 const tRoleKey: Record<RoleName, string> = {
-  Farmer: 'navbar.farmer',
   FPO: 'navbar.fpo',
   Consumer: 'navbar.consumer',
   'Bulk Buyer': 'navbar.bulk_buyer',

@@ -10,7 +10,7 @@ export default function WeatherWidget({ region }: WeatherWidgetProps) {
   if (!data) return null;
 
   return (
-    <div className="glass-panel-sm p-4 space-y-3">
+    <div className="glass-panel-sm p-3.5 space-y-2.5">
       <div className="flex items-center justify-between">
         <div>
           <h3 className="font-display font-bold text-sm text-text-primary">{data.region}</h3>

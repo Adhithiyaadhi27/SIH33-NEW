@@ -60,7 +60,7 @@ export default function SupplyDemandHeatmap() {
   });
 
   return (
-    <GlassCard className="p-5 sm:p-6 space-y-4">
+    <GlassCard className="p-5 sm:p-6 space-y-4 h-full flex flex-col justify-between">
       <div>
         <h2 className="font-display font-extrabold text-lg text-text-primary">
           {t('heatmap.title')}
@@ -70,7 +70,7 @@ export default function SupplyDemandHeatmap() {
         </p>
       </div>
 
-      <div className="relative rounded-2xl overflow-hidden border border-white/10 bg-soil-forest/40 h-[360px]">
+      <div className="relative rounded-2xl overflow-hidden border border-white/10 bg-soil-forest/40 h-[300px]">
         <MapContainer
           center={[10.8, 78.5]}
           zoom={7}
@@ -79,8 +79,8 @@ export default function SupplyDemandHeatmap() {
           className="z-0"
         >
           <TileLayer
-            url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-            attribution='&copy; OpenStreetMap &copy; CARTO'
+            url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; OpenStreetMap'
           />
           {(loading ? [] : districts).map((d) => {
             const meta = heatLevels.find((h) => h.key === d.level) ?? heatLevels[0];

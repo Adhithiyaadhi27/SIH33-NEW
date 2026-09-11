@@ -109,7 +109,7 @@ export default function CropQualitySandbox() {
   const grade = result?.grade ?? normalizeGrade(preview.grade);
 
   return (
-    <GlassCard className="p-5 sm:p-6 space-y-4">
+    <GlassCard className="p-5 sm:p-6 space-y-4 h-full flex flex-col justify-between">
       <div>
         <h2 className="font-display font-extrabold text-lg text-text-primary">
           {t('ai.title')}

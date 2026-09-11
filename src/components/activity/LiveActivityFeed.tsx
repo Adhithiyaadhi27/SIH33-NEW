@@ -23,21 +23,28 @@ export default function LiveActivityFeed() {
   const prepend = (a: Omit<Activity, 'id' | 'time'>) => {
     const now = new Date();
     const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    setItems((prev) => [{ id: ++idCounter, time, ...a }, ...prev].slice(0, 9));
+    setItems((prev) => [{ id: ++idCounter, time, ...a }, ...prev].slice(0, 18));
   };
 
   const seeded = useRef(false);
   useEffect(() => {
     if (seeded.current) return;
     seeded.current = true;
-    setItems(
-      mockOrders.map((o, i) => ({
-        id: i,
-        icon: 'order' as const,
-        text: `${o.quantityKg.toLocaleString()} kg ${o.product} · ${o.from} → ${o.to}`,
-        time: `${9 + (i % 8)}:${String((20 + i * 17) % 60).padStart(2, '0')} AM`,
-      })),
-    );
+    const initialEvents: Activity[] = [
+      { id: 1, icon: 'price', text: 'Tomato market rate updated to ₹30.0/kg', time: '03:25 pm' },
+      { id: 2, icon: 'verify', text: 'Inventory refreshed · tomato (500 kg)', time: '03:24 pm' },
+      { id: 3, icon: 'truck', text: 'Logistics fleet ETA update · 1,793 kg in transit', time: '03:22 pm' },
+      { id: 4, icon: 'order', text: '500 kg Tomato · Madurai → Chennai', time: '03:20 pm' },
+      { id: 5, icon: 'price', text: 'Green Beans market rate updated to ₹23.5/kg', time: '03:18 pm' },
+      { id: 6, icon: 'verify', text: 'Inventory refreshed · green beans (300 kg)', time: '03:15 pm' },
+      { id: 7, icon: 'order', text: '300 kg Green Beans · Nilgiris → Coimbatore', time: '03:12 pm' },
+      { id: 8, icon: 'verify', text: 'AI Quality Certified · Lot #AGR-2026-1024 Grade A', time: '03:08 pm' },
+      { id: 9, icon: 'price', text: 'Potato market rate updated to ₹28.0/kg', time: '03:05 pm' },
+      { id: 10, icon: 'truck', text: 'Cold chain vehicle TN-01-AB-1234 departed Madurai Hub', time: '03:00 pm' },
+      { id: 11, icon: 'verify', text: 'Produce Passport generated for Batch TRB2023001', time: '02:55 pm' },
+      { id: 12, icon: 'order', text: '1,200 kg Potato · Ooty → Bangalore', time: '02:50 pm' },
+    ];
+    setItems(initialEvents);
   }, []);
 
   useRealtime('price:update', ({ price }) => {
@@ -69,7 +76,7 @@ export default function LiveActivityFeed() {
   };
 
   return (
-    <GlassCard className="p-5 sm:p-6 space-y-4 h-full">
+    <GlassCard className="p-5 sm:p-6 space-y-3 h-full flex flex-col justify-between">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="font-display font-extrabold text-lg text-text-primary">Live Activity Feed</h2>
@@ -83,7 +90,7 @@ export default function LiveActivityFeed() {
         </div>
       </div>
 
-      <div className="space-y-2 max-h-[340px] overflow-y-auto scrollbar-none pr-1">
+      <div className="flex-1 space-y-2 overflow-y-auto scrollbar-none pr-1 max-h-[380px]">
         <AnimatePresence initial={false}>
           {items.map((a) => (
             <motion.div
@@ -101,6 +108,14 @@ export default function LiveActivityFeed() {
             </motion.div>
           ))}
         </AnimatePresence>
+      </div>
+
+      <div className="pt-2 border-t border-white/10 flex items-center justify-between text-[11px] text-text-muted">
+        <span className="flex items-center gap-1.5 text-soil-mint font-medium">
+          <span className="w-1.5 h-1.5 rounded-full bg-soil-mint animate-pulse" />
+          Socket.IO Synced
+        </span>
+        <span className="text-soil-gold font-bold">18 Mandis Active</span>
       </div>
     </GlassCard>
   );

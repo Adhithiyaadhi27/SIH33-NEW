@@ -36,34 +36,113 @@ interface OrderTrackingWidgetProps {
 
 export default function OrderTrackingWidget({ compact }: OrderTrackingWidgetProps) {
   const { orders } = useOrderTrackingStore();
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(() => orders[0]?.id ?? null);
   const selected = selectedId ? orders.find((o) => o.id === selectedId) : null;
 
   if (compact) {
+    const activeOrder = selected ?? orders[0];
+    const currentStep = activeOrder ? statusSteps.indexOf(activeOrder.status) : 0;
+
     return (
-      <GlassCard className="p-4 space-y-3">
-        <h3 className="font-display font-bold text-sm text-text-primary">Active Orders</h3>
+      <GlassCard className="p-5 sm:p-6 space-y-3 h-full flex flex-col justify-between">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="font-display font-extrabold text-lg text-text-primary">Active Shipments</h2>
+            <p className="text-xs text-text-muted mt-0.5">Live transit status &amp; telemetry</p>
+          </div>
+          <span className="text-[10px] font-bold text-soil-gold bg-soil-gold/15 border border-soil-gold/30 px-2.5 py-0.5 rounded-full">
+            {orders.length} In Transit
+          </span>
+        </div>
+
         {orders.length === 0 ? (
-          <p className="text-[11px] text-text-muted">No active orders</p>
+          <p className="text-xs text-text-muted py-8 text-center">No active orders</p>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             {orders.map((o) => (
               <button
                 key={o.id}
                 onClick={() => setSelectedId(o.id)}
-                className="w-full flex items-center gap-3 p-2 rounded-xl bg-white/5 hover:bg-white/10 transition cursor-pointer text-left"
+                className={`w-full flex items-center gap-2.5 p-2 rounded-xl transition cursor-pointer text-left border ${
+                  activeOrder?.id === o.id
+                    ? 'bg-soil-gold/15 border-soil-gold/40 shadow-glow-gold'
+                    : 'glass-panel-sm hover:bg-white/10 border-white/10'
+                }`}
               >
-                <img src={o.productImage} alt="" className="w-10 h-10 rounded-lg object-cover shrink-0" />
+                <img src={o.productImage} alt="" className="w-9 h-9 rounded-lg object-cover shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <div className="text-[11px] font-bold text-text-primary truncate">{o.productName}</div>
-                  <div className="text-[9px] text-text-muted">{o.id} · ETA: {o.eta}</div>
+                  <div className="text-xs font-bold text-text-primary truncate">{o.productName}</div>
+                  <div className="text-[9px] text-text-muted">{o.id} · {o.vehicleNo}</div>
+                </div>
+                <div className="text-right shrink-0">
+                  <div className="text-[10px] font-bold text-soil-gold">ETA: {o.eta}</div>
+                  <div className="text-[8px] text-emerald-400 capitalize font-medium">{o.status.replace('_', ' ')}</div>
                 </div>
                 <ChevronRight className="w-3.5 h-3.5 text-text-muted shrink-0" />
               </button>
             ))}
           </div>
         )}
-        {selected && <TrackingDetail order={selected} onClose={() => setSelectedId(null)} />}
+
+        {/* Tailored compact telemetry for the active shipment */}
+        {activeOrder && (
+          <div className="glass-panel-sm p-3 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-full bg-soil-emerald/40 flex items-center justify-center text-[10px] font-bold text-white">
+                  {activeOrder.driverName.charAt(0)}
+                </div>
+                <div>
+                  <div className="text-[11px] font-bold text-text-primary">{activeOrder.driverName}</div>
+                  <div className="text-[9px] text-text-muted">{activeOrder.vehicleNo}</div>
+                </div>
+              </div>
+              <a
+                href={`tel:${activeOrder.driverPhone}`}
+                className="p-1.5 rounded-lg bg-soil-emerald/30 text-emerald-300 hover:bg-soil-emerald/50 transition"
+                title="Call Driver"
+              >
+                <Phone className="w-3.5 h-3.5" />
+              </a>
+            </div>
+
+            {/* Visual step progress */}
+            <div className="space-y-1">
+              <div className="flex items-center gap-1">
+                {statusSteps.map((step, i) => (
+                  <div key={step} className="flex items-center flex-1">
+                    <div
+                      className={`w-4 h-4 rounded-full flex items-center justify-center text-[7px] font-bold shrink-0 ${
+                        i <= currentStep ? 'bg-soil-gold text-soil-base' : 'bg-white/10 text-text-muted'
+                      }`}
+                    >
+                      {i < currentStep ? '✓' : i + 1}
+                    </div>
+                    {i < statusSteps.length - 1 && (
+                      <div className={`flex-1 h-0.5 mx-0.5 ${i < currentStep ? 'bg-soil-gold' : 'bg-white/10'}`} />
+                    )}
+                  </div>
+                ))}
+              </div>
+              <div className="flex justify-between text-[7px] text-text-muted">
+                {statusLabels.map((l) => <span key={l}>{l}</span>)}
+              </div>
+            </div>
+
+            {/* Live route note */}
+            <div className="text-[10px] text-text-muted flex items-center justify-between pt-0.5">
+              <span className="text-emerald-400 font-medium">● Highway Transit: Madurai → Chennai</span>
+              <span className="text-soil-gold font-bold">ETA: {activeOrder.eta}</span>
+            </div>
+
+            <Link
+              to="/tracking"
+              className="w-full text-center py-1.5 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-soil-gold text-[11px] font-bold block transition"
+            >
+              Open Full Interactive GPS Map &rarr;
+            </Link>
+          </div>
+        )}
       </GlassCard>
     );
   }
@@ -131,7 +210,7 @@ function TrackingDetail({ order, onClose }: { order: TrackedOrder; onClose: () =
           style={{ height: '100%', width: '100%' }}
           zoomControl={false}
         >
-          <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
+          <TileLayer url="https://tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='&copy; OpenStreetMap' />
           <FlyToDriver lat={order.currentLat} lng={order.currentLng} />
           <Marker position={[order.currentLat, order.currentLng]} icon={driverIcon}>
             <Popup><b>{order.driverName}</b><br />{order.vehicleNo}</Popup>

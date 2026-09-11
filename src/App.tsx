@@ -1,5 +1,5 @@
 import React, { Suspense, lazy } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import Navbar from './components/Navbar';
@@ -23,7 +23,7 @@ const DisputePage = lazy(() => import('./pages/DisputePage'));
 const RegistrationPage = lazy(() => import('./pages/RegistrationPage'));
 const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage'));
 const SettingsPage = lazy(() => import('./pages/SettingsPage'));
-const { FarmerPage, GenericRolePage } = { FarmerPage: lazy(() => import('./pages/RolePages').then((m) => ({ default: m.FarmerPage }))), GenericRolePage: lazy(() => import('./pages/RolePages').then((m) => ({ default: m.GenericRolePage }))) };
+const GenericRolePage = lazy(() => import('./pages/RolePages').then((m) => ({ default: m.GenericRolePage })));
 
 const queryClient = new QueryClient();
 
@@ -68,7 +68,7 @@ function BrowserRouterWrapper() {
               <Route path="/registration" element={<RegistrationPage />} />
               <Route path="/analytics" element={<AnalyticsPage />} />
               <Route path="/settings" element={<SettingsPage />} />
-              <Route path="/farmer" element={<FarmerPage />} />
+              <Route path="/farmer" element={<Navigate to="/fpo" replace />} />
               <Route path="/fpo" element={<GenericRolePage role="FPO" tagline="Farmer aggregation, batch pooling, inventory & demand" />} />
               <Route path="/consumer" element={<GenericRolePage role="Consumer" tagline="Marketplace discovery, cart, orders & delivery tracking" />} />
               <Route path="/bulk-buyer" element={<GenericRolePage role="Bulk Buyer" tagline="Bulk marketplace, RFPs, supplier comparison & contracts" />} />

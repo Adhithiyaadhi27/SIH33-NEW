@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-export type RoleName = 'Farmer' | 'FPO' | 'Consumer' | 'Bulk Buyer' | 'Logistics' | 'Admin';
+export type RoleName = 'FPO' | 'Consumer' | 'Bulk Buyer' | 'Logistics' | 'Admin';
 
 interface RoleState {
   activeRole: RoleName;

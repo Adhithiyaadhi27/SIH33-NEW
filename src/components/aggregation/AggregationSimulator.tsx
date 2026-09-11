@@ -17,7 +17,7 @@ export default function AggregationSimulator() {
   });
 
   return (
-    <GlassCard className="p-5 sm:p-6 space-y-4">
+    <GlassCard className="p-5 sm:p-6 space-y-4 h-full flex flex-col justify-between">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="font-display font-extrabold text-lg text-text-primary">

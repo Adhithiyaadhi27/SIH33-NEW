@@ -11,10 +11,9 @@ interface RegistrationModalProps {
   onClose: () => void;
 }
 
-const ROLES: RoleName[] = ['Farmer', 'FPO', 'Consumer', 'Bulk Buyer', 'Logistics', 'Admin'];
+const ROLES: RoleName[] = ['FPO', 'Consumer', 'Bulk Buyer', 'Logistics', 'Admin'];
 
 const roleLabelKey: Record<RoleName, string> = {
-  Farmer: 'navbar.farmer',
   FPO: 'navbar.fpo',
   Consumer: 'navbar.consumer',
   'Bulk Buyer': 'navbar.bulk_buyer',
@@ -26,7 +25,7 @@ const initialForm = {
   name: '',
   email: '',
   phone: '',
-  role: 'Farmer' as RoleName,
+  role: 'Consumer' as RoleName,
   location: '',
   organization: '',
 };

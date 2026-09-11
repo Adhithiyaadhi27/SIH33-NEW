@@ -32,11 +32,11 @@ function GlobalRegistration({ onClick }: { onClick: () => void }) {
         Dynamic Role Registration
       </h1>
       <p className="text-sm text-text-muted max-w-md mx-auto">
-        Register as a Farmer, FPO, Consumer, Bulk Buyer, Logistics Partner or Admin. Your request
+        Register as an FPO, Consumer, Bulk Buyer, Logistics Partner or Admin. Your request
         will be routed to the relevant verification flow.
       </p>
       <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
-        {['Farmer', 'FPO', 'Consumer', 'Bulk Buyer', 'Logistics', 'Admin'].map((r) => (
+        {['FPO', 'Consumer', 'Bulk Buyer', 'Logistics', 'Admin'].map((r) => (
           <span key={r} className="bg-white/10 border border-white/15 px-3 py-1 rounded-full text-[11px] font-bold text-text-secondary">
             {r}
           </span>

@@ -17,52 +17,53 @@ export default function Home() {
       <HeroSection />
 
       {/* Dashboard Grid Sample — mirrors the reference composition */}
-      <main id="dashboard" className="relative mt-8 lg:-mt-24 max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 pb-24 space-y-6">
+      <main id="dashboard" className="relative mt-2 lg:mt-4 max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 pb-8 space-y-5">
+        {/* Row 1: Aggregation Simulator (2 cols) + AI Quality Grading (1 col) */}
         <FadeIn>
-          <div className="grid lg:grid-cols-3 gap-5">
-            {/* Left 2/3: Aggregation Simulator */}
-            <div className="lg:col-span-2">
-              <FadeIn>
-                <AggregationSimulator />
-              </FadeIn>
+          <div className="grid lg:grid-cols-3 gap-5 items-stretch">
+            <div className="lg:col-span-2 h-full">
+              <AggregationSimulator />
             </div>
-            {/* Top-right: AI Crop Quality Grading */}
-            <div id="ai-grading">
-              <FadeIn delay={0.1}>
-                <CropQualitySandbox />
-              </FadeIn>
+            <div id="ai-grading" className="lg:col-span-1 h-full">
+              <CropQualitySandbox />
             </div>
           </div>
         </FadeIn>
 
+        {/* Row 2: Supply/Demand Heatmap (2 cols) + Digital Produce Passport (1 col) */}
         <FadeIn>
-          <div className="grid lg:grid-cols-3 gap-5">
-            {/* Bottom-left: Digital Produce Passport */}
-            <div id="passport">
-              <ProducePassport />
-            </div>
-            {/* Center-bottom: Live Heatmap */}
-            <div className="lg:col-span-1">
+          <div className="grid lg:grid-cols-3 gap-5 items-stretch">
+            <div className="lg:col-span-2 h-full">
               <SupplyDemandHeatmap />
             </div>
-            {/* Center/right: Marketplace */}
-            <div>
-              <Marketplace />
+            <div id="passport" className="lg:col-span-1 h-full">
+              <ProducePassport />
             </div>
           </div>
         </FadeIn>
 
-        {/* Floating Interactive Panels — right side */}
-        <div className="grid lg:grid-cols-3 gap-5">
-          <div className="lg:col-span-2 space-y-5">
-            <LiveActivityFeed />
-            <OrderTrackingWidget compact />
+        {/* Row 3: Live Feeds (1 col) + Active Order Tracking (1 col) + Weather & Roles (1 col) */}
+        <FadeIn>
+          <div className="grid lg:grid-cols-3 gap-5 items-stretch">
+            <div className="h-full">
+              <LiveActivityFeed />
+            </div>
+            <div className="h-full">
+              <OrderTrackingWidget compact />
+            </div>
+            <div className="space-y-3.5 flex flex-col">
+              <WeatherWidget region="Madurai, TN" />
+              <RoleSwitcher />
+            </div>
           </div>
-          <div className="space-y-5">
-            <WeatherWidget region="Madurai, TN" />
-            <RoleSwitcher />
+        </FadeIn>
+
+        {/* Row 4: Full-Width Instant Marketplace Showcase */}
+        <FadeIn>
+          <div id="marketplace" className="w-full">
+            <Marketplace />
           </div>
-        </div>
+        </FadeIn>
       </main>
     </div>
   );
