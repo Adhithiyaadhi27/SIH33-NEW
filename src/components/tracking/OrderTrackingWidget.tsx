@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Navigation, Phone, ChevronRight, ArrowLeft } from 'lucide-react';
+import { Navigation, Phone, ChevronRight, ArrowLeft, MapPin, IndianRupee, CalendarDays, CreditCard, Package } from 'lucide-react';
 import { useOrderTrackingStore, type TrackedOrder } from '../../store/orderTrackingStore';
+import { useAuthStore } from '../../store/authStore';
 import { GlassCard, FadeIn } from '../ui/primitives';
 import { Link } from 'react-router-dom';
 
@@ -36,11 +37,13 @@ interface OrderTrackingWidgetProps {
 
 export default function OrderTrackingWidget({ compact }: OrderTrackingWidgetProps) {
   const { orders } = useOrderTrackingStore();
-  const [selectedId, setSelectedId] = useState<string | null>(() => orders[0]?.id ?? null);
-  const selected = selectedId ? orders.find((o) => o.id === selectedId) : null;
+  const user = useAuthStore((s) => s.user);
+  const visibleOrders = orders.filter((o) => !o.userId || o.userId === user?.id);
+  const [selectedId, setSelectedId] = useState<string | null>(() => visibleOrders[0]?.id ?? null);
+  const selected = selectedId ? visibleOrders.find((o) => o.id === selectedId) : null;
 
   if (compact) {
-    const activeOrder = selected ?? orders[0];
+    const activeOrder = selected ?? visibleOrders[0];
     const currentStep = activeOrder ? statusSteps.indexOf(activeOrder.status) : 0;
 
     return (
@@ -51,15 +54,15 @@ export default function OrderTrackingWidget({ compact }: OrderTrackingWidgetProp
             <p className="text-xs text-text-muted mt-0.5">Live transit status &amp; telemetry</p>
           </div>
           <span className="text-[10px] font-bold text-soil-gold bg-soil-gold/15 border border-soil-gold/30 px-2.5 py-0.5 rounded-full">
-            {orders.length} In Transit
+            {visibleOrders.length} In Transit
           </span>
         </div>
 
-        {orders.length === 0 ? (
+        {visibleOrders.length === 0 ? (
           <p className="text-xs text-text-muted py-8 text-center">No active orders</p>
         ) : (
           <div className="space-y-1.5">
-            {orders.map((o) => (
+            {visibleOrders.map((o) => (
               <button
                 key={o.id}
                 onClick={() => setSelectedId(o.id)}
@@ -152,7 +155,7 @@ export default function OrderTrackingWidget({ compact }: OrderTrackingWidgetProp
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-display font-extrabold text-2xl text-text-primary">Order Tracking</h1>
-          <p className="text-xs text-text-muted mt-1">{orders.length} active shipments</p>
+          <p className="text-xs text-text-muted mt-1">{visibleOrders.length} active shipments</p>
         </div>
         <Link to="/marketplace" className="flex items-center gap-1 text-[10px] font-bold text-soil-gold hover:underline">
           <ArrowLeft className="w-3 h-3" /> Back to Marketplace
@@ -160,7 +163,7 @@ export default function OrderTrackingWidget({ compact }: OrderTrackingWidgetProp
       </div>
       <div className="grid md:grid-cols-3 gap-4">
         <div className="md:col-span-2 space-y-3">
-          {orders.map((o) => (
+          {visibleOrders.map((o) => (
             <FadeIn key={o.id}>
               <GlassCard className="p-4 cursor-pointer hover:border-soil-gold/40 transition" onClick={() => setSelectedId(o.id)}>
                 <div className="flex items-center gap-4">
@@ -264,6 +267,47 @@ function TrackingDetail({ order, onClose }: { order: TrackedOrder; onClose: () =
           <a href={`tel:${order.driverPhone}`} className="p-2 rounded-lg bg-soil-emerald/30 text-emerald-300 hover:bg-soil-emerald/50 transition">
             <Phone className="w-3.5 h-3.5" />
           </a>
+        </div>
+
+        {/* Order & delivery details */}
+        <div className="glass-panel-sm p-3 space-y-2">
+          <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-soil-gold">
+            <Package className="w-3 h-3" /> Order Details
+          </div>
+          <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[10px]">
+            <div>
+              <span className="text-text-muted">Order date</span>
+              <div className="font-bold text-text-primary flex items-center gap-1"><CalendarDays className="w-3 h-3 text-soil-gold" /> {order.orderDate ?? '—'}</div>
+            </div>
+            <div>
+              <span className="text-text-muted">Total</span>
+              <div className="font-bold text-soil-gold flex items-center gap-1"><IndianRupee className="w-3 h-3" /> {(order.total ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
+            </div>
+            <div>
+              <span className="text-text-muted">Payment</span>
+              <div className="font-bold text-text-primary flex items-center gap-1"><CreditCard className="w-3 h-3 text-soil-gold" /> {order.paymentStatus ?? 'PAID'}</div>
+            </div>
+            <div>
+              <span className="text-text-muted">Method</span>
+              <div className="font-bold text-text-primary">{order.paymentMethod ?? '—'}</div>
+            </div>
+          </div>
+          {order.deliveryAddress && (
+            <div className="flex items-start gap-1.5 text-[10px] text-text-secondary pt-1 border-t border-white/10">
+              <MapPin className="w-3 h-3 text-soil-gold shrink-0 mt-0.5" />
+              <span>{order.deliveryAddress}</span>
+            </div>
+          )}
+          {order.items && order.items.length > 0 && (
+            <div className="space-y-1 pt-1 border-t border-white/10">
+              {order.items.map((it) => (
+                <div key={it.productId} className="flex justify-between text-[10px]">
+                  <span className="text-text-primary">{it.name} × {it.quantity} {it.unit}</span>
+                  <span className="font-bold text-text-secondary">₹{it.lineTotal.toFixed(2)}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Events */}

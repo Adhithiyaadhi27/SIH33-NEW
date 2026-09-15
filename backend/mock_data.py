@@ -6,59 +6,59 @@ traceability passports, and AI metrics.
 
 USERS = [
     {
-        "id": "usr_consumer_1",
-        "name": "Priya Sundaram",
-        "email": "priya@example.com",
-        "role": "Consumer",
+        "id": "demo_admin",
+        "name": "Admin User",
+        "email": "admin@maanvasam.com",
+        "password": "Admin@123",
+        "role": "ADMIN",
+        "phone": "+91 80 4000 9000",
+        "city": "Chennai",
+        "state": "Tamil Nadu",
+        "avatar": "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=250&q=80"
+    },
+    {
+        "id": "demo_farmer",
+        "name": "Farmer Raman",
+        "email": "farmer@maanvasam.com",
+        "password": "Farmer@123",
+        "role": "FARMER",
+        "phone": "+91 94432 88990",
+        "city": "Madurai",
+        "state": "Tamil Nadu",
+        "organization": "GreenValley FPO",
+        "avatar": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=250&q=80"
+    },
+    {
+        "id": "demo_consumer",
+        "name": "Consumer Priya",
+        "email": "consumer@maanvasam.com",
+        "password": "Consumer@123",
+        "role": "CONSUMER",
         "phone": "+91 98765 43210",
         "city": "Chennai",
         "state": "Tamil Nadu",
         "avatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80"
     },
     {
-        "id": "usr_buyer_1",
-        "name": "Karthik Raja (Evergreen Mart)",
-        "email": "karthik@evergreen.in",
-        "role": "Bulk Buyer",
-        "phone": "+91 98401 22334",
+        "id": "usr_consumer_1",
+        "name": "Priya Sundaram",
+        "email": "priya@example.com",
+        "role": "CONSUMER",
+        "phone": "+91 98765 43210",
         "city": "Chennai",
         "state": "Tamil Nadu",
-        "company": "Evergreen Supermarkets Pvt Ltd",
-        "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=250&q=80"
+        "avatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80"
     },
     {
-        "id": "usr_fpo_1",
+        "id": "usr_farmer_1",
         "name": "GreenValley FPO (S. Ramanathan)",
         "email": "fpo@greenvalley.org",
-        "role": "FPO",
+        "role": "FARMER",
         "phone": "+91 94432 88990",
         "city": "Madurai",
         "state": "Tamil Nadu",
         "organization": "Madurai GreenValley Farmers Producer Co-op",
-        "memberFarmersCount": 340,
         "avatar": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=250&q=80"
-    },
-    {
-        "id": "usr_logistics_1",
-        "name": "Veloce Agri-Logistics (Murugan)",
-        "email": "logistics@veloceagro.com",
-        "role": "Logistics Partner",
-        "phone": "+91 99620 11223",
-        "city": "Madurai - Chennai Corridor",
-        "state": "Tamil Nadu",
-        "fleetSize": 18,
-        "vehicleType": "Refrigerated 4-Ton & 8-Ton Eicher Trucks",
-        "avatar": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=250&q=80"
-    },
-    {
-        "id": "usr_admin_1",
-        "name": "AgriDirect System Administrator",
-        "email": "admin@agridirect.ai",
-        "role": "Admin",
-        "phone": "+91 80 4000 9000",
-        "city": "Bangalore",
-        "state": "Karnataka",
-        "avatar": "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=250&q=80"
     }
 ]
 
@@ -162,31 +162,6 @@ PRODUCTS = [
         "wasteRisk": "Low",
         "image": "https://images.unsplash.com/photo-1567375698348-5d9d5ae99de0?auto=format&fit=crop&w=600&q=80",
         "description": "Tender, stringless French beans harvested at dawn from the Nilgiris foothills. Crisp texture, bright green, ideal for daily cooking."
-    },
-    {
-        "id": "prod_brinjal",
-        "name": "Madurai Oosimadai Brinjal",
-        "category": "Vegetables",
-        "price": 26,
-        "unit": "kg",
-        "availableQty": 700,
-        "minBulkQty": 60,
-        "bulkPrice": 22,
-        "grade": "Grade A",
-        "supplier": "GreenValley FPO",
-        "supplierId": "usr_fpo_1",
-        "location": "Madurai, Tamil Nadu",
-        "harvestDate": "2026-09-01",
-        "availability": "Ready Stock",
-        "supplierReliability": 90,
-        "rating": 4.5,
-        "reviewsCount": 48,
-        "batchId": "AGR-2026-1044",
-        "shelfLifeDays": 7,
-        "stockAgeDays": 1,
-        "wasteRisk": "Medium",
-        "image": "https://images.unsplash.com/photo-1603048588665-791ca8aea617?auto=format&fit=crop&w=600&q=80",
-        "description": "Long, glossy Madurai oosimadai brinjals with thin skin and few seeds. Perfect for sambar, kootu, and stuffed curries."
     },
     {
         "id": "prod_carrot",

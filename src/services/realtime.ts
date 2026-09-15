@@ -78,8 +78,8 @@ function startMockProvider() {
 
   const queue: Array<[string, unknown]> = [];
 
-  const productIds = ['prod_tomato', 'prod_beans', 'prod_potato', 'prod_apple', 'prod_onion', 'prod_brinjal', 'prod_carrot', 'prod_mango'];
-  const basePrices = [30, 23.5, 28, 145, 32, 26, 35, 120];
+  const productIds = ['prod_tomato', 'prod_beans', 'prod_potato', 'prod_apple', 'prod_onion', 'prod_carrot', 'prod_mango'];
+  const basePrices = [30, 23.5, 28, 145, 32, 35, 120];
   let priceState = [...basePrices];
 
   mockInterval = setInterval(() => {
@@ -88,7 +88,6 @@ function startMockProvider() {
     priceState = priceState.map((p, i) => (i === idx ? Math.max(5, Number((p + delta).toFixed(1))) : p));
 
     queue.push(['price:update', { productId: productIds[idx], price: priceState[idx] }]);
-    queue.push(['stock:update', { productId: productIds[idx], availableQty: Math.max(1, Math.round(300 + Math.random() * 2200)) }]);
     queue.push(['metric:update', { key: 'harvest', value: 5000 }]);
     queue.push(['metric:update', { key: 'transit', value: 1700 + Math.floor(Math.random() * 200) }]);
     queue.push(['metric:update', { key: 'delivery', value: 1700 + Math.floor(Math.random() * 180) }]);

@@ -1,4 +1,4 @@
-import { MOCK_WEATHER, type WeatherData } from '../../data/weatherData';
+import { MOCK_WEATHER } from '../../data/weatherData';
 import { CloudRain, Droplets, Wind, Thermometer, AlertTriangle } from 'lucide-react';
 
 interface WeatherWidgetProps {

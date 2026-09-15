@@ -1,8 +1,7 @@
 import { GlassCard } from '../ui/primitives';
-import { mockProducts, type MockProduct } from '../../data/mockProducts';
+import { mockProducts } from '../../data/mockProducts';
 import { GitCompare } from 'lucide-react';
 import StarRating from './StarRating';
-import { useReviewStore } from '../../store/reviewStore';
 import { useMarketplaceStore } from '../../store/marketplaceStore';
 
 interface PriceComparisonProps {

@@ -1,11 +1,17 @@
 import { useEffect, useState } from 'react';
-import { LayoutGrid, List, Search, Filter, Loader2, Radio } from 'lucide-react';
+import { AnimatePresence } from 'framer-motion';
+import { LayoutGrid, List, Search, Filter, Radio, Eye, ShoppingCart } from 'lucide-react';
 import { GlassCard } from '../ui/primitives';
+import { SkeletonCard } from '../ui/skeleton';
 import { mockProducts, type MockProduct } from '../../data/mockProducts';
 import { useRealtime, useRealtimeStatus } from '../../services/realtime';
 import { useFlashDealStore, applyFlashUpdate } from '../../store/flashDealStore';
+import { useMarketplaceStore } from '../../store/marketplaceStore';
+import { useInventoryStore } from '../../store/inventoryStore';
+import { useFarmerProductsStore } from '../../store/farmerProductsStore';
 import api from '../../services/api';
 import ProductCard from './ProductCard';
+import ProductDetailsModal from './ProductDetailsModal';
 
 const CATEGORIES = ['All', 'Vegetables', 'Fruits'];
 const ALLOWED_CATEGORIES = new Set(['Vegetables', 'Fruits']);
@@ -48,11 +54,16 @@ function toMockProduct(p: Record<string, unknown>): MockProduct {
 export default function Marketplace() {
   const feedStatus = useRealtimeStatus();
   const deals = useFlashDealStore((s) => s.deals);
+  const cart = useMarketplaceStore((s) => s.cart);
+  const inventoryItems = useInventoryStore((s) => s.items);
+  const updateInventoryStock = useInventoryStore((s) => s.updateQuantity);
+  const farmerProducts = useFarmerProductsStore((s) => s.products);
   const [view, setView] = useState<'grid' | 'list'>('grid');
   const [category, setCategory] = useState('All');
   const [query, setQuery] = useState('');
   const [products, setProducts] = useState<MockProduct[]>(mockProducts);
   const [loading, setLoading] = useState(true);
+  const [detailProduct, setDetailProduct] = useState<MockProduct | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -78,14 +89,40 @@ export default function Marketplace() {
     setProducts((prev) => prev.map((p) => (p.id === productId ? { ...p, price } : p)));
   });
   useRealtime('stock:update', ({ productId, availableQty }) => {
+    updateInventoryStock(productId, availableQty);
     setProducts((prev) => prev.map((p) => (p.id === productId ? { ...p, availableQty } : p)));
   });
   useRealtime('flash:update', (payload) => {
     applyFlashUpdate(payload);
   });
 
-  const filtered = products.filter((p) => {
+  // Core inventory store is the single source of truth for stock, so
+  // marketplace availability stays consistent with purchases made on the
+  // consumer cart/checkout flow (spec §23: updated quantity reflected
+  // wherever inventory is displayed).
+  const stockById = inventoryItems.reduce<Record<string, number>>((map, item) => {
+    map[item.id] = item.quantity;
+    return map;
+  }, {});
+
+  // Merge farmer-listed products (spec §18 → §19): farmer additions override
+  // catalog entries with the same id (reflecting their latest stock/price edits)
+  // and brand-new listings are appended so consumers can buy them.
+  const mergedBase = [...products];
+  farmerProducts.forEach((fp) => {
+    const idx = mergedBase.findIndex((p) => p.id === fp.id);
+    if (idx >= 0) mergedBase[idx] = { ...fp };
+    else mergedBase.push({ ...fp });
+  });
+
+  const displayProducts = mergedBase.map((p) => ({
+    ...p,
+    availableQty: stockById[p.id] !== undefined ? stockById[p.id] : p.availableQty,
+  }));
+
+  const filtered = displayProducts.filter((p) => {
     if (!ALLOWED_CATEGORIES.has(p.category)) return false;
+    if (/oosimadai/i.test(p.name)) return false;
     const okCat = category === 'All' || p.category === category;
     const okQuery = !query || p.name.toLowerCase().includes(query.toLowerCase()) || p.location.toLowerCase().includes(query.toLowerCase());
     return okCat && okQuery;
@@ -167,8 +204,10 @@ export default function Marketplace() {
 
       {/* Products */}
       {loading ? (
-        <div className="flex items-center justify-center gap-2 text-sm text-text-muted py-12 glass-panel-sm rounded-2xl">
-          <Loader2 className="w-4 h-4 animate-spin text-soil-gold" /> Loading live catalog...
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <SkeletonCard key={i} />
+          ))}
         </div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-12 glass-panel-sm rounded-2xl">
@@ -179,7 +218,7 @@ export default function Marketplace() {
       ) : view === 'grid' ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {filtered.map((p) => (
-            <ProductCard key={p.id} product={p} />
+            <ProductCard key={p.id} product={p} onViewDetail={setDetailProduct} />
           ))}
         </div>
       ) : (
@@ -204,13 +243,29 @@ export default function Marketplace() {
                   <div className="font-extrabold text-soil-gold">₹{p.price.toFixed(2)}/<span className="text-xs">{p.unit}</span></div>
                 )}
                 <div className={`text-[10px] ${p.availableQty === 0 ? 'text-red-400 font-bold' : 'text-text-muted'}`}>
-                  {p.availableQty === 0 ? 'Out of Stock' : `${p.availableQty} kg available`}
+                  {p.availableQty === 0 ? 'Out of Stock' : `${p.availableQty} ${p.unit} available`}
                 </div>
+                {cart.some((i) => i.id === p.id) && (
+                  <span className="inline-flex items-center gap-1 mt-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold text-emerald-300 bg-emerald-500/10 border border-emerald-400/25">
+                    <ShoppingCart className="w-2.5 h-2.5" /> {cart.find((i) => i.id === p.id)?.quantity ?? 0} in cart
+                  </span>
+                )}
               </div>
+              <button
+                onClick={() => setDetailProduct(p)}
+                className="shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-[10px] font-bold text-soil-gold border border-soil-gold/30 hover:bg-soil-gold/10 transition cursor-pointer"
+              >
+                <Eye className="w-3 h-3" /> View
+              </button>
             </div>
           ))}
         </div>
       )}
+      <AnimatePresence>
+        {detailProduct && (
+          <ProductDetailsModal key={detailProduct.id} product={detailProduct} onClose={() => setDetailProduct(null)} />
+        )}
+      </AnimatePresence>
     </GlassCard>
   );
 }

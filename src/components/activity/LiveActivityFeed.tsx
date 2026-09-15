@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { GlassCard } from '../ui/primitives';
 import { useRealtime, useRealtimeStatus } from '../../services/realtime';
 import useTranslation from '../../services/useTranslation';
-import { mockOrders } from '../../data/mockOrders';
 import { Truck, ShieldCheck, TrendingUp, Package } from 'lucide-react';
 
 interface Activity {

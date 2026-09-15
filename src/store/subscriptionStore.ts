@@ -42,7 +42,7 @@ const PLAN_CATALOG: SubscriptionPlan[] = [
     price: 1199,
     items: [
       { name: 'Potato', qty: '2 kg', image: 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?auto=format&fit=crop&w=100&q=60' },
-      { name: 'Brinjal', qty: '1 kg', image: 'https://images.unsplash.com/photo-1603048588665-791ca8aea617?auto=format&fit=crop&w=100&q=60' },
+      { name: 'Carrot', qty: '1 kg', image: 'https://images.unsplash.com/photo-1447175008436-054170c2e979?auto=format&fit=crop&w=100&q=60' },
       { name: 'Apple', qty: '1 kg', image: 'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?auto=format&fit=crop&w=100&q=60' },
       { name: 'Mango', qty: '1 kg', image: 'https://images.unsplash.com/photo-1553279768-865429fa0078?auto=format&fit=crop&w=100&q=60' },
     ],
@@ -73,7 +73,7 @@ interface SubscriptionState {
 
 export const useSubscriptionStore = create<SubscriptionState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       plans: PLAN_CATALOG,
       activeSubscription: null,
       subscribe: (planId) =>

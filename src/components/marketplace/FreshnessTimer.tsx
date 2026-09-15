@@ -3,23 +3,20 @@ import { Clock } from 'lucide-react';
 
 interface FreshnessTimerProps {
   harvestDate: string;
-  unit?: 'hours' | 'days';
 }
 
-export default function FreshnessTimer({ harvestDate, unit = 'hours' }: FreshnessTimerProps) {
+export default function FreshnessTimer({ harvestDate }: FreshnessTimerProps) {
   const [elapsed, setElapsed] = useState('');
 
   useEffect(() => {
     const calc = () => {
       const now = new Date();
-      const parts = harvestDate.replace(',', '').split(' ');
-      const day = parseInt(parts[0], 10);
+      const match = harvestDate.trim().match(/^(\d{1,2})-([A-Za-z]{3})[,\s]+(\d{4})$/);
+      if (!match) return;
       const monthMap: Record<string, number> = { Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5, Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11 };
-      const month = monthMap[parts[1]] ?? 0;
-      const year = now.getFullYear();
-      const harvested = new Date(year, month, day, 6, 0);
-      const diff = now.getTime() - harvested.getTime();
-      const hours = Math.max(0, Math.floor(diff / 3600000));
+      const harvested = new Date(parseInt(match[3], 10), monthMap[match[2]] ?? 0, parseInt(match[1], 10), 6, 0);
+      const diff = Math.max(0, now.getTime() - harvested.getTime());
+      const hours = Math.floor(diff / 3600000);
       if (hours < 24) setElapsed(`${hours}h ago`);
       else setElapsed(`${Math.floor(hours / 24)}d ${hours % 24}h ago`);
     };

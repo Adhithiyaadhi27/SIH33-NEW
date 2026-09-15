@@ -51,6 +51,10 @@ interface CheckoutModalProps {
   onClose: () => void;
   items: CheckoutItem[];
   onSuccess?: (order: Record<string, unknown>) => void;
+  deliveryAddress?: string;
+  userId?: string;
+  customerName?: string;
+  customerPhone?: string;
 }
 
 type Step = 'analyzing' | 'method' | 'processing' | 'success' | 'error';
@@ -93,7 +97,16 @@ function simulateReceipt(items: CheckoutItem[], methodId: string, breakdown: Ord
   };
 }
 
-export default function CheckoutModal({ open, onClose, items, onSuccess }: CheckoutModalProps) {
+export default function CheckoutModal({
+  open,
+  onClose,
+  items,
+  onSuccess,
+  deliveryAddress = 'Consumer pickup — Main Market, Chennai',
+  userId = 'usr_consumer_1',
+  customerName = 'Guest User',
+  customerPhone = '',
+}: CheckoutModalProps) {
   return (
     <AnimatePresence>
       {open && (
@@ -112,7 +125,16 @@ export default function CheckoutModal({ open, onClose, items, onSuccess }: Check
             transition={{ duration: 0.2 }}
             className="relative w-full max-w-lg glass-panel p-5 sm:p-6 max-h-[92vh] overflow-y-auto"
           >
-            <CheckoutFlow key={`cf-${items.map((i) => `${i.productId}:${i.quantity}`).join('|')}-${open}`} items={items} onClose={onClose} onSuccess={onSuccess} />
+            <CheckoutFlow
+              key={`cf-${items.map((i) => `${i.productId}:${i.quantity}`).join('|')}-${open}`}
+              items={items}
+              onClose={onClose}
+              onSuccess={onSuccess}
+              deliveryAddress={deliveryAddress}
+              userId={userId}
+              customerName={customerName}
+              customerPhone={customerPhone}
+            />
           </motion.div>
         </motion.div>
       )}
@@ -120,7 +142,23 @@ export default function CheckoutModal({ open, onClose, items, onSuccess }: Check
   );
 }
 
-function CheckoutFlow({ items, onClose, onSuccess }: { items: CheckoutItem[]; onClose: () => void; onSuccess?: (order: Record<string, unknown>) => void }) {
+function CheckoutFlow({
+  items,
+  onClose,
+  onSuccess,
+  deliveryAddress,
+  userId,
+  customerName,
+  customerPhone,
+}: {
+  items: CheckoutItem[];
+  onClose: () => void;
+  onSuccess?: (order: Record<string, unknown>) => void;
+  deliveryAddress: string;
+  userId: string;
+  customerName: string;
+  customerPhone: string;
+}) {
   const { t } = useTranslation();
   const pushToast = useNotificationStore((s) => s.pushToast);
 
@@ -196,10 +234,10 @@ function CheckoutFlow({ items, onClose, onSuccess }: { items: CheckoutItem[]; on
     }));
 
     const payload = {
-      userId: 'usr_consumer_1',
-      customerName: 'Guest User',
-      customerPhone: '',
-      deliveryAddress: 'Consumer pickup — Main Market, Chennai',
+      userId,
+      customerName,
+      customerPhone,
+      deliveryAddress,
       mode: 'Everyday Purchase',
       items: itemsPayload,
       paymentMethod: methodId,

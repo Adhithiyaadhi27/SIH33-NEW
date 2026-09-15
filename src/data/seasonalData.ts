@@ -52,7 +52,6 @@ export const PRODUCT_SEASONS: Record<string, Season> = {
   prod_potato: 'winter',
   prod_apple: 'winter',
   prod_onion: 'year-round',
-  prod_brinjal: 'summer',
   prod_carrot: 'winter',
   prod_mango: 'summer',
   prod_orange: 'winter',

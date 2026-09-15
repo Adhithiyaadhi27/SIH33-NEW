@@ -3,7 +3,7 @@ import { ArrowLeft } from 'lucide-react';
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, PieChart, Pie, Cell, BarChart, Bar, Legend,
 } from 'recharts';
-import { GlassCard, FadeIn, MetricTile } from '../components/ui/primitives';
+import { GlassCard, FadeIn, MetricTile, DemoDataBadge } from '../components/ui/primitives';
 
 const REVENUE_DATA = [
   { month: 'Apr', revenue: 45000, orders: 32 },
@@ -37,16 +37,21 @@ export default function RevenueAnalyticsPage() {
           <h1 className="font-display font-extrabold text-2xl text-text-primary">Revenue Analytics</h1>
           <p className="text-xs text-text-muted mt-1">Track your earnings, top products, and buyer channels</p>
         </div>
-        <Link to="/marketplace" className="flex items-center gap-1 text-[10px] font-bold text-soil-gold hover:underline">
-          <ArrowLeft className="w-3 h-3" /> Back
+        <Link to="/admin/analytics" className="flex items-center gap-1 text-[10px] font-bold text-soil-gold hover:underline">
+          <ArrowLeft className="w-3 h-3" /> Back to Analytics
         </Link>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <MetricTile label="Total Revenue" value="₹3.47L" icon={<span className="text-lg">💰</span>} accent="text-soil-gold" />
-        <MetricTile label="Total Orders" value="277" icon={<span className="text-lg">📦</span>} accent="text-emerald-400" />
-        <MetricTile label="Avg. Order Value" value="₹1,253" icon={<span className="text-lg">📊</span>} accent="text-soil-goldSoft" />
-        <MetricTile label="Repeat Rate" value="68%" icon={<span className="text-lg">🔄</span>} accent="text-blue-400" />
+      <div className="flex items-center justify-between gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 flex-1">
+          <MetricTile label="Total Revenue" value="₹3.47L" icon={<span className="text-lg">💰</span>} accent="text-soil-gold" />
+          <MetricTile label="Total Orders" value="277" icon={<span className="text-lg">📦</span>} accent="text-emerald-400" />
+          <MetricTile label="Avg. Order Value" value="₹1,253" icon={<span className="text-lg">📊</span>} accent="text-soil-goldSoft" />
+          <MetricTile label="Repeat Rate" value="68%" icon={<span className="text-lg">🔄</span>} accent="text-blue-400" />
+        </div>
+      </div>
+      <div className="flex justify-end -mt-2">
+        <DemoDataBadge />
       </div>
 
       <div className="grid lg:grid-cols-3 gap-4">

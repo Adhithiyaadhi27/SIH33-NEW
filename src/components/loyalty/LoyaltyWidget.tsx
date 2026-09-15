@@ -1,5 +1,5 @@
 import { useLoyaltyStore } from '../../store/loyaltyStore';
-import { Star, Gift, TrendingUp, Award } from 'lucide-react';
+import { Star, Gift, Award } from 'lucide-react';
 
 interface LoyaltyWidgetProps {
   showHistory?: boolean;

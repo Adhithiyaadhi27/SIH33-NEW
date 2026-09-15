@@ -131,3 +131,19 @@ export function FadeIn({ children, delay = 0, className = '' }: { children: Reac
     </motion.div>
   );
 }
+
+export function DemoDataBadge({ className = '' }: { className?: string }) {
+  return (
+    <span
+      title="These figures are illustrative sample data for the demo build and do not represent live platform statistics."
+      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border border-soil-gold/30 bg-soil-gold/10 text-soil-goldSoft ${className}`}
+    >
+      <svg className="w-3 h-3 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10" />
+        <line x1="12" y1="8" x2="12" y2="12" />
+        <line x1="12" y1="16" x2="12.01" y2="16" />
+      </svg>
+      Demo data
+    </span>
+  );
+}

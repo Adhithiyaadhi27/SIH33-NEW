@@ -13,6 +13,12 @@ export interface AuthUser {
   avatar?: string;
 }
 
+export const DEMO_USERS = [
+  { id: 'demo_admin', name: 'Admin User', email: 'admin@maanvasam.com', password: 'Admin@123', role: 'ADMIN', location: 'Chennai', avatar: '' },
+  { id: 'demo_farmer', name: 'Farmer Raman', email: 'farmer@maanvasam.com', password: 'Farmer@123', role: 'FARMER', location: 'Madurai', organization: 'GreenValley FPO' },
+  { id: 'demo_consumer', name: 'Consumer Priya', email: 'consumer@maanvasam.com', password: 'Consumer@123', role: 'CONSUMER', location: 'Chennai' },
+];
+
 interface AuthState {
   token: string | null;
   user: AuthUser | null;

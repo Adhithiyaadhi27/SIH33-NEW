@@ -12,7 +12,7 @@ socketio = SocketIO(cors_allowed_origins="*", async_mode="eventlet")
 # Product IDs spanning the full backend catalog + frontend mockProducts.ts
 PRODUCT_IDS = [
     "prod_tomato", "prod_beans", "prod_potato", "prod_apple",
-    "prod_onion", "prod_brinjal", "prod_carrot", "prod_mango",
+    "prod_onion", "prod_carrot", "prod_mango",
     "prod_rice", "prod_dal", "prod_orange", "prod_turmeric",
 ]
 
@@ -22,7 +22,6 @@ BASE_PRICES = {
     "prod_potato": 28.0,
     "prod_apple": 145.0,
     "prod_onion": 32.0,
-    "prod_brinjal": 26.0,
     "prod_carrot": 35.0,
     "prod_mango": 120.0,
     "prod_rice": 46.5,
@@ -37,7 +36,6 @@ BASE_STOCK = {
     "prod_potato": 1200,
     "prod_apple": 850,
     "prod_onion": 2500,
-    "prod_brinjal": 700,
     "prod_carrot": 600,
     "prod_mango": 450,
     "prod_rice": 3100,

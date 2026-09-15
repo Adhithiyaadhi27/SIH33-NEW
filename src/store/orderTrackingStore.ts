@@ -8,6 +8,15 @@ export interface TrackingEvent {
   lng: number;
 }
 
+export interface TrackedOrderItem {
+  productId: string;
+  name: string;
+  quantity: number;
+  unit: string;
+  price: number;
+  lineTotal: number;
+}
+
 export interface TrackedOrder {
   id: string;
   productName: string;
@@ -21,6 +30,13 @@ export interface TrackedOrder {
   driverPhone: string;
   vehicleNo: string;
   eta: string;
+  total: number;
+  orderDate: string;
+  deliveryAddress: string;
+  paymentStatus: string;
+  paymentMethod?: string;
+  userId?: string;
+  items?: TrackedOrderItem[];
   events: TrackingEvent[];
 }
 
@@ -38,6 +54,14 @@ const MOCK_ORDERS: TrackedOrder[] = [
     driverPhone: '+91 98765 43210',
     vehicleNo: 'TN-01-AB-1234',
     eta: '45 min',
+    total: 325.0,
+    orderDate: '09 Sep 2026',
+    deliveryAddress: '42, Velachery Main Road, Chennai — 600042',
+    paymentStatus: 'PAID',
+    paymentMethod: 'UPI',
+    items: [
+      { productId: 'prod_tomato', name: 'Tomato', quantity: 10, unit: 'kg', price: 30, lineTotal: 300 },
+    ],
     events: [
       { time: '09 Sep, 06:00 AM', location: 'GreenValley FPO, Madurai', status: 'Order Confirmed', lat: 9.9252, lng: 78.1198 },
       { time: '09 Sep, 08:30 AM', location: 'Cold Storage Hub, Madurai', status: 'Picked & Packed', lat: 9.93, lng: 78.12 },
@@ -57,6 +81,14 @@ const MOCK_ORDERS: TrackedOrder[] = [
     driverPhone: '+91 87654 32109',
     vehicleNo: 'HP-07-CD-5678',
     eta: '2 days',
+    total: 750.0,
+    orderDate: '08 Sep 2026',
+    deliveryAddress: '18, Anna Nagar, Chennai — 600040',
+    paymentStatus: 'PAID',
+    paymentMethod: 'CARD',
+    items: [
+      { productId: 'prod_apple', name: 'Apple', quantity: 5, unit: 'kg', price: 145, lineTotal: 725 },
+    ],
     events: [
       { time: '08 Sep, 04:00 PM', location: 'Himachal Collective, Kinnaur', status: 'Order Confirmed', lat: 31.58, lng: 78.47 },
       { time: '09 Sep, 06:00 AM', location: 'Regional Cold Hub, Shimla', status: 'Dispatched', lat: 31.1, lng: 77.17 },
@@ -80,3 +112,54 @@ export const useOrderTrackingStore = create<OrderTrackingState>((set, get) => ({
       orders: state.orders.map((o) => (o.id === id ? { ...o, status } : o)),
     })),
 }));
+
+/**
+ * Minimal shape of MockOrder / farmer order record sufficient for bridging
+ * into a TrackedOrder. Keeps the tracking store decoupled from the data layer.
+ */
+export interface MockOrderLike {
+  id: string;
+  product: string;
+  quantityKg: number;
+  from: string;
+  to: string;
+  status: string;
+  eta: string;
+}
+
+const STATUS_MAP: Record<string, TrackedOrder['status']> = {
+  PENDING: 'confirmed',
+  AGGREGATING: 'confirmed',
+  IN_TRANSIT: 'in_transit',
+  DELIVERED: 'delivered',
+};
+
+const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=600&q=80';
+
+export function mockToTrackedOrder(m: MockOrderLike): TrackedOrder {
+  const now = new Date();
+  return {
+    id: m.id,
+    productName: `${m.product} (${m.quantityKg} kg)`,
+    productImage: DEFAULT_IMAGE,
+    status: STATUS_MAP[m.status] ?? 'confirmed',
+    currentLat: 13.0,
+    currentLng: 80.0,
+    destinationLat: 13.0827,
+    destinationLng: 80.2707,
+    driverName: '—',
+    driverPhone: '—',
+    vehicleNo: '—',
+    eta: m.eta,
+    total: 0,
+    orderDate: now.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
+    deliveryAddress: m.to,
+    paymentStatus: m.status === 'DELIVERED' ? 'PAID' : 'PENDING',
+    items: [
+      { productId: '', name: m.product, quantity: m.quantityKg, unit: 'kg', price: 0, lineTotal: 0 },
+    ],
+    events: [
+      { time: m.eta, location: `${m.from} → ${m.to}`, status: m.status, lat: 13.0, lng: 80.0 },
+    ],
+  };
+}

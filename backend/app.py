@@ -16,9 +16,11 @@ Comprehensive implementation of all 67 PRD requirements:
 import os
 import json
 import uuid
-from datetime import datetime
-from flask import Flask, request, jsonify
+import functools
+from datetime import datetime, timedelta, timezone
+from flask import Flask, request, jsonify, g
 from flask_cors import CORS
+import jwt
 
 from mock_data import (
     USERS, PRODUCTS, BUYER_REQUIREMENTS, PRODUCE_PASSPORTS,
@@ -34,12 +36,104 @@ from socketio_handler import (
 )
 
 app = Flask(__name__)
+JWT_SECRET = os.environ.get("JWT_SECRET", "maanvasam-dev-secret-change-in-production")
+JWT_ALGORITHM = "HS256"
+JWT_EXPIRY_HOURS = 24
 
 # Enable CORS for frontend development (including Socket.IO)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 # Initialize Socket.IO with the Flask app
 socketio.init_app(app, cors_allowed_origins="*", async_mode="eventlet")
+
+
+# ----------------- JWT AUTH HELPERS -----------------
+def generate_token(user_id: str, role: str) -> str:
+    payload = {
+        "sub": user_id,
+        "role": role,
+        "iat": datetime.now(timezone.utc),
+        "exp": datetime.now(timezone.utc) + timedelta(hours=JWT_EXPIRY_HOURS),
+    }
+    return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+
+
+def decode_token(token: str) -> dict | None:
+    try:
+        return jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+    except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
+        return None
+
+
+def require_auth(f):
+    """Decorator that enforces a valid JWT + optionally checks role."""
+    @functools.wraps(f)
+    def decorated(*args, **kwargs):
+        auth_header = request.headers.get("Authorization", "")
+        token = auth_header.removeprefix("Bearer ").strip() if auth_header else ""
+        if not token:
+            return jsonify({"success": False, "error": "Authentication required"}), 401
+        payload = decode_token(token)
+        if not payload:
+            return jsonify({"success": False, "error": "Invalid or expired token"}), 401
+        g.user_id = payload.get("sub")
+        g.user_role = payload.get("role")
+        return f(*args, **kwargs)
+    return decorated
+
+
+def require_role(*allowed_roles):
+    """Decorator factory — must be stacked AFTER @require_auth."""
+    def decorator(f):
+        @functools.wraps(f)
+        def decorated(*args, **kwargs):
+            if not getattr(g, "user_role", None):
+                return jsonify({"success": False, "error": "Authentication required"}), 401
+            if g.user_role not in allowed_roles:
+                return jsonify({"success": False, "error": "Access denied — insufficient permissions"}), 403
+            return f(*args, **kwargs)
+        return decorated
+    return decorator
+
+
+# Public routes that do NOT require authentication
+PUBLIC_ROUTES = {
+    ("GET",  "/api/health"),
+    ("GET",  "/api/translations"),
+    ("GET",  "/api/languages"),
+    ("POST", "/api/auth/login"),
+    ("POST", "/api/auth/register"),
+    ("GET",  "/api/products"),
+    ("GET",  "/api/products/"),
+}
+
+
+@app.before_request
+def auth_middleware():
+    """Validate JWT on every /api/ request unless the route is public."""
+    if not request.path.startswith("/api/"):
+        return
+    method = request.method
+    path = request.path.rstrip("/")
+
+    # Check exact match and prefix match for path-parameter routes
+    for pub_method, pub_prefix in PUBLIC_ROUTES:
+        if method == pub_method and (path == pub_prefix.rstrip("/") or path.startswith(pub_prefix.rstrip("/") + "/")):
+            return
+
+    # Socket.IO polling — skip (handled by socketio itself)
+    if path.startswith("/socket.io"):
+        return
+
+    auth_header = request.headers.get("Authorization", "")
+    token = auth_header.removeprefix("Bearer ").strip() if auth_header else ""
+    if not token:
+        return jsonify({"success": False, "error": "Authentication required"}), 401
+    payload = decode_token(token)
+    if not payload:
+        return jsonify({"success": False, "error": "Invalid or expired token"}), 401
+    g.user_id = payload.get("sub")
+    g.user_role = payload.get("role")
 
 # ----------------- CHECKOUT & PAYMENTS -----------------
 # In-memory payment ledger + supported methods
@@ -153,19 +247,23 @@ def get_supported_languages():
 def auth_login():
     data = request.get_json() or {}
     email = data.get("email", "").strip().lower()
-    role = data.get("role")
+    password = data.get("password", "")
+    if data.get("role") is not None:
+        data.pop("role", None)
 
-    user = next((u for u in USERS if u["email"].lower() == email), None)
-    if not user and role:
-        user = next((u for u in USERS if u["role"].lower() == role.lower()), None)
+    user = next((u for u in USERS if u["email"].lower() == email and u.get("password", "") == password), None)
     if not user:
-        user = USERS[0]  # Default to Consumer
+        return jsonify({
+            "success": False,
+            "error": "Invalid email or password. Please try again."
+        }), 401
 
-    token = f"jwt_mock_token_{user['id']}_{int(datetime.now().timestamp())}"
+    token = generate_token(user["id"], user["role"])
+    safe_user = {k: v for k, v in user.items() if k != "password"}
     return jsonify({
         "success": True,
         "token": token,
-        "user": user,
+        "user": safe_user,
         "emailVerified": True
     })
 
@@ -199,6 +297,8 @@ def auth_register():
 
 
 @app.route("/api/users", methods=["GET"])
+@require_auth
+@require_role("ADMIN")
 def get_users():
     return jsonify({"success": True, "users": USERS})
 
@@ -271,6 +371,8 @@ def get_requirements():
 
 
 @app.route("/api/requirements", methods=["POST"])
+@require_auth
+@require_role("ADMIN", "CONSUMER", "BULK_BUYER")
 def create_requirement():
     data = request.get_json() or {}
     new_req = {
@@ -297,6 +399,8 @@ def create_requirement():
 
 
 @app.route("/api/aggregation/match", methods=["POST"])
+@require_auth
+@require_role("ADMIN", "BULK_BUYER", "CONSUMER")
 def match_aggregation():
     data = request.get_json() or {}
     target_qty = int(data.get("quantity", 5000))
@@ -320,6 +424,8 @@ def get_aggregation_stats():
 
 # ----------------- AI CAPABILITIES -----------------
 @app.route("/api/quality/analyze", methods=["POST"])
+@require_auth
+@require_role("ADMIN", "FARMER", "FPO")
 def analyze_crop_quality():
     data = request.get_json() or {}
     product = data.get("product", "Tomato")
@@ -501,6 +607,8 @@ def get_payment_methods():
 
 
 @app.route("/api/payments/initiate", methods=["POST"])
+@require_auth
+@require_role("ADMIN", "CONSUMER")
 def initiate_payment():
     """Create a pending order + payment intent. Returns paymentId & gateway reference."""
     data = request.get_json() or {}
@@ -591,6 +699,8 @@ def initiate_payment():
 
 
 @app.route("/api/payments/confirm", methods=["POST"])
+@require_auth
+@require_role("ADMIN", "CONSUMER")
 def confirm_payment():
     """Simulate gateway authorization, mark the payment PAID and the order CONFIRMED."""
     data = request.get_json() or {}
@@ -645,28 +755,49 @@ def confirm_payment():
 
 
 @app.route("/api/payments/<payment_id>", methods=["GET"])
+@require_auth
 def get_payment(payment_id):
     payment = next((p for p in PAYMENTS if p["paymentId"] == payment_id), None)
     if not payment:
         return jsonify({"success": False, "error": "Payment not found"}), 404
     order = next((o for o in ORDERS if o["id"] == payment["orderId"]), None)
+    user_id = getattr(g, "user_id", None)
+    role = getattr(g, "user_role", None)
+    if role != "ADMIN" and order and user_id and order.get("userId") != user_id:
+        return jsonify({"success": False, "error": "Access denied"}), 403
     return jsonify({"success": True, "payment": payment, "order": order})
 
 
 @app.route("/api/orders/<order_id>", methods=["GET"])
+@require_auth
 def get_single_order(order_id):
     order = next((o for o in ORDERS if o["id"] == order_id), None)
     if not order:
         return jsonify({"success": False, "error": "Order not found"}), 404
+    user_id = getattr(g, "user_id", None)
+    role = getattr(g, "user_role", None)
+    if role != "ADMIN" and order.get("userId") != user_id:
+        return jsonify({"success": False, "error": "Access denied"}), 403
     return jsonify({"success": True, "order": order})
 
 
 @app.route("/api/orders", methods=["GET"])
+@require_auth
 def get_orders():
-    return jsonify({"success": True, "orders": ORDERS})
+    user_id = getattr(g, "user_id", None)
+    role = getattr(g, "user_role", None)
+    if role == "ADMIN":
+        return jsonify({"success": True, "orders": ORDERS})
+    if role == "FARMER":
+        farmer_orders = [o for o in ORDERS if o.get("supplierId") == user_id or not o.get("userId")]
+        return jsonify({"success": True, "orders": farmer_orders})
+    consumer_orders = [o for o in ORDERS if o.get("userId") == user_id]
+    return jsonify({"success": True, "orders": consumer_orders})
 
 
 @app.route("/api/orders", methods=["POST"])
+@require_auth
+@require_role("ADMIN", "CONSUMER")
 def create_order():
     data = request.get_json() or {}
     new_order = {
@@ -700,6 +831,8 @@ def create_order():
 
 
 @app.route("/api/orders/<order_id>/status", methods=["PATCH"])
+@require_auth
+@require_role("ADMIN", "FARMER")
 def update_order_status(order_id):
     data = request.get_json() or {}
     new_status = data.get("status")
@@ -859,11 +992,15 @@ def _corridor_driver(corridor):
 
 
 @app.route("/api/support", methods=["GET", "POST"])
+@require_auth
 def handle_support():
+    user_id = getattr(g, "user_id", None)
+    role = getattr(g, "user_role", None)
     if request.method == "POST":
         data = request.get_json() or {}
         new_ticket = {
             "id": f"TCK-{len(SUPPORT_TICKETS) + 4082}",
+            "userId": user_id,
             "category": data.get("category", "General Inquiry"),
             "orderId": data.get("orderId", "N/A"),
             "subject": data.get("subject", "Assistance needed"),
@@ -886,6 +1023,8 @@ def get_notifications():
 
 # ----------------- FARMERS -----------------
 @app.route("/api/farmers", methods=["GET"])
+@require_auth
+@require_role("ADMIN", "FARMER")
 def get_farmers():
     """Return farmer data for the Farmer dashboard."""
     farmers = [

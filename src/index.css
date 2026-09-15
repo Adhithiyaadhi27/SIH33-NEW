@@ -126,8 +126,15 @@
 @layer utilities {
   .bg-agri-forest {
     background:
-      radial-gradient(1200px 600px at 15% -10%, rgba(46, 139, 87, 0.35), transparent 60%),
-      radial-gradient(900px 500px at 85% 10%, rgba(246, 189, 96, 0.15), transparent 55%),
+      radial-gradient(1200px 600px at 15% -10%, rgba(46, 139, 87, 0.4), transparent 60%),
+      radial-gradient(900px 500px at 85% 10%, rgba(246, 189, 96, 0.18), transparent 55%),
+      radial-gradient(600px 400px at 50% 80%, rgba(46, 139, 87, 0.2), transparent 50%),
+      linear-gradient(160deg, #0B2B1E 0%, #081F16 40%, #061610 80%, #040E0A 100%);
+  }
+
+  .bg-hero-agriculture {
+    background:
+      url('https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=1920&q=80') center/cover no-repeat,
       linear-gradient(160deg, #0B2B1E 0%, #081F16 60%, #061610 100%);
   }
 

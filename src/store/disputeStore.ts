@@ -19,7 +19,7 @@ interface DisputeState {
   resolveDispute: (id: string, refund: number) => void;
 }
 
-export const useDisputeStore = create<DisputeState>((set, get) => ({
+export const useDisputeStore = create<DisputeState>((set) => ({
   disputes: [
     {
       id: 'disp_1',

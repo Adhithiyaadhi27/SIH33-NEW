@@ -11,7 +11,9 @@ import {
   Bar,
   Legend,
 } from 'recharts';
-import { GlassCard, FadeIn, MetricTile } from '../components/ui/primitives';
+import { GlassCard, FadeIn, MetricTile, DemoDataBadge } from '../components/ui/primitives';
+import { Skeleton } from '../components/ui/skeleton';
+import { usePageLoading } from '../hooks/usePageLoading';
 import useTranslation from '../services/useTranslation';
 import api from '../services/api';
 
@@ -48,6 +50,7 @@ const FALLBACK_DISTRICT: DistrictPoint[] = [
 
 export default function AnalyticsPage() {
   const { t } = useTranslation();
+  const loading = usePageLoading(600);
   const [forecastData, setForecastData] = useState<ForecastPoint[]>(FALLBACK_FORECAST);
   const [districtData, setDistrictData] = useState<DistrictPoint[]>(FALLBACK_DISTRICT);
   const [metrics, setMetrics] = useState({ currentDemand: 3500, availableSupply: 3200, shortage: 300, confidence: 92.4 });
@@ -98,15 +101,30 @@ export default function AnalyticsPage() {
             <p className="text-sm text-text-muted">
               {t('analytics.subtitle')}
             </p>
+            <div className="flex justify-center mt-3">
+              <DemoDataBadge />
+            </div>
           </div>
         </FadeIn>
 
         {/* Metric tiles */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <MetricTile label={t('analytics.current_demand')} value={`${metrics.currentDemand.toLocaleString()} kg`} accent="text-soil-gold" />
-          <MetricTile label={t('analytics.available_supply')} value={`${metrics.availableSupply.toLocaleString()} kg`} accent="text-soil-mint" />
-          <MetricTile label={t('analytics.predicted_shortage')} value={`${metrics.shortage.toLocaleString()} kg`} accent="text-soil-goldSoft" />
-          <MetricTile label={t('analytics.confidence')} value={`${metrics.confidence.toFixed(1)}%`} accent="text-soil-pale" />
+          {loading
+            ? Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="glass-panel-sm p-4 space-y-2">
+                  <Skeleton className="w-8 h-8 rounded-xl" />
+                  <Skeleton className="w-3/4 h-3" />
+                  <Skeleton className="w-1/2 h-4" />
+                </div>
+              ))
+            : (
+              <>
+                <MetricTile label={t('analytics.current_demand')} value={`${metrics.currentDemand.toLocaleString()} kg`} accent="text-soil-gold" />
+                <MetricTile label={t('analytics.available_supply')} value={`${metrics.availableSupply.toLocaleString()} kg`} accent="text-soil-mint" />
+                <MetricTile label={t('analytics.predicted_shortage')} value={`${metrics.shortage.toLocaleString()} kg`} accent="text-soil-goldSoft" />
+                <MetricTile label={t('analytics.confidence')} value={`${metrics.confidence.toFixed(1)}%`} accent="text-soil-pale" />
+              </>
+            )}
         </div>
 
         {/* Demand vs supply area chart */}

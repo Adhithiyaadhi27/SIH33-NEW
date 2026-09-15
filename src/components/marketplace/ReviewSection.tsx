@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { ThumbsUp, MessageSquare, ChevronDown, ChevronUp } from 'lucide-react';
-import { useReviewStore, type Review } from '../../store/reviewStore';
+import { ThumbsUp, ChevronDown, ChevronUp } from 'lucide-react';
+import { useReviewStore } from '../../store/reviewStore';
 import StarRating from './StarRating';
 import { GlassCard } from '../ui/primitives';
 
@@ -9,7 +9,7 @@ interface ReviewSectionProps {
 }
 
 export default function ReviewSection({ productId }: ReviewSectionProps) {
-  const { reviews, addReview, markHelpful, getReviewsForProduct, getAverageRating } = useReviewStore();
+  const { addReview, markHelpful, getReviewsForProduct, getAverageRating } = useReviewStore();
   const [expanded, setExpanded] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [newRating, setNewRating] = useState(5);

@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Send, Package, Check, XCircle, MessageSquare } from 'lucide-react';
-import { useNegotiationStore, type Negotiation } from '../../store/negotiationStore';
-import { GlassCard } from '../ui/primitives';
+import { useNegotiationStore } from '../../store/negotiationStore';
 
 interface BulkOrderModalProps {
   open: boolean;

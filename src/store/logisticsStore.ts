@@ -144,6 +144,14 @@ function toTrackedOrder(assignment: RerouteAssignment, corridor: CorridorCapacit
     driverPhone: assignment.driverPhone,
     vehicleNo: corridor.vehicle,
     eta: `~${corridor.transitHours} hrs`,
+    total: assignment.earnings,
+    orderDate: now.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
+    deliveryAddress: `${corridor.to}, via ${corridor.vehicle} cold chain`,
+    paymentStatus: 'SYSTEM_REROUTE',
+    userId: 'admin',
+    items: [
+      { productId: proposal.productId, name: proposal.product, quantity: proposal.quantityKg, unit: 'kg', price: proposal.discountedPrice, lineTotal: proposal.quantityKg * proposal.discountedPrice },
+    ],
     events,
   };
 }

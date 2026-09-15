@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-export type RoleName = 'FPO' | 'Consumer' | 'Bulk Buyer' | 'Logistics' | 'Admin';
+export type RoleName = 'ADMIN' | 'FARMER' | 'CONSUMER';
 
 interface RoleState {
   activeRole: RoleName;
@@ -8,6 +8,6 @@ interface RoleState {
 }
 
 export const useRoleStore = create<RoleState>((set) => ({
-  activeRole: 'Consumer',
+  activeRole: 'CONSUMER',
   setActiveRole: (activeRole) => set({ activeRole }),
 }));
